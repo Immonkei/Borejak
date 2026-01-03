@@ -139,13 +139,20 @@ export default function Navbar() {
                       My Donations
                     </Link>
                     <Link
-                href="/profile/benefits"
-                className={navItem("/profile/benefits")}
-                onClick={() => setOpen(false)}
-              >
-                <Heart className="w-4 h-4" />
-                My Benefits
-              </Link>
+                      href="/profile/benefits"
+                      className={navItem("/profile/benefits")}
+                      onClick={() => setOpen(false)}
+                    >
+                      <Heart className="w-4 h-4" />
+                      My Benefits
+                    </Link>
+                    <Link
+                      href="/profile/testimonials"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Heart className="w-4 h-4 text-pink-500" />
+                      My Testimonials
+                    </Link>
 
                     {isAdmin && (
                       <Link
@@ -264,7 +271,14 @@ export default function Navbar() {
                 <Heart className="w-4 h-4" />
                 My Benefits
               </Link>
-
+              <Link
+                href="/profile/testimonials"
+                className={navItem("/profile/testimonials")}
+                onClick={() => setOpen(false)}
+              >
+                <Heart className="w-4 h-4" />
+                My Testimonials
+              </Link>
               {isAdmin && (
                 <Link
                   href="/admin"

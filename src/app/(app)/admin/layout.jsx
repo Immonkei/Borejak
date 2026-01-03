@@ -62,6 +62,11 @@ export default function AdminLayout({ children }) {
     label: "Blood Market",
     icon: Droplet,
   },
+  { 
+    href: "/admin/testimonials",
+    label: "Testimonials",
+    icon: Users,
+  },
   ];
 
   const isActive = (href) => {

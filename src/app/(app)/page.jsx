@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
+import TestimonialsSection from "@/components/testimonials/TestimonialsSection";
 import { useEffect } from "react";
 import { Droplet, Heart, Users, Calendar, Building2, Award, ArrowRight, Shield, Clock, CheckCircle } from "lucide-react";
 
@@ -249,6 +250,8 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        <TestimonialsSection />
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-red-600 to-purple-600 py-20">
