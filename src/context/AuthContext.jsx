@@ -21,66 +21,43 @@ export function AuthProvider({ children }) {
   }, []);
 
   // 🔐 Login
-  async function login(data) {
-    const token = data.token || data.data?.token;
-    const userData = data.user || data.data?.user;
+async function login(data) {
+  const token = data.token || data.data?.token;
+  const userData = data.user || data.data?.user;
 
-    if (!token || !userData) {
-      throw new Error("Invalid auth response");
-    }
+  setToken(token);
+  setUser(userData);
 
-    // 1️⃣ Save basic auth first
-    setToken(token);
-    setUser(userData);
+  localStorage.setItem("auth", JSON.stringify({ token, user: userData }));
 
-    localStorage.setItem(
-      "auth",
-      JSON.stringify({
-        token,
-        user: userData,
-      })
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) return userData;
+
+    const { user: profile } = await res.json();
+
+    const completed = Boolean(
+      profile?.full_name &&
+      profile?.blood_type &&
+      profile?.date_of_birth &&
+      profile?.gender
     );
 
-    // 2️⃣ IMMEDIATELY sync full profile
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const mergedUser = { ...profile, profile_completed: completed };
 
-      if (!res.ok) return;
+    setUser(mergedUser);
+    localStorage.setItem("auth", JSON.stringify({ token, user: mergedUser }));
 
-      const data = await res.json();
-      const profile = data.user;
-
-      const completed = !!(
-        profile?.full_name &&
-        profile?.blood_type &&
-        profile?.date_of_birth &&
-        profile?.gender
-      );
-
-      const mergedUser = {
-        ...profile,
-        profile_completed: completed,
-      };
-
-      setUser(mergedUser);
-      localStorage.setItem(
-        "auth",
-        JSON.stringify({
-          token,
-          user: mergedUser,
-        })
-      );
-    } catch {
-      // silent fail (network, etc.)
-    }
+    return mergedUser; // ✅ IMPORTANT
+  } catch {
+    return userData;
   }
+}
+
+
 
   // 🚪 Logout
   function logout() {

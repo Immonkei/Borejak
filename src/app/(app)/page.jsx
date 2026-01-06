@@ -11,25 +11,25 @@ export default function HomePage() {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (loading) return;
+  // useEffect(() => {
+  //   if (loading) return;
 
-    if (!isAuthenticated) return;
+  //   if (!isAuthenticated) return;
 
-    // 🔒 ADMIN RULE (TOP PRIORITY)
-    if (user?.role === "admin") {
-      router.replace("/admin");
-      return;
-    }
+  //   // 🔒 ADMIN RULE (TOP PRIORITY)
+  //   if (user?.role === "admin") {
+  //     router.replace("/admin");
+  //     return;
+  //   }
 
-    if (typeof user?.profile_completed !== "boolean") return;
+  //   if (typeof user?.profile_completed !== "boolean") return;
 
-    if (!user?.profile_completed) {
-      router.replace("/complete-profile");
-    } else {
-      router.replace("/profile");
-    }
-  }, [loading, isAuthenticated, user, pathname]);
+  //   if (!user?.profile_completed) {
+  //     router.replace("/complete-profile");
+  //   } else {
+  //     router.replace("/profile");
+  //   }
+  // }, [loading, isAuthenticated, user, pathname]);
 
   if (loading) {
     return (

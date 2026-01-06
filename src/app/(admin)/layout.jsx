@@ -2,24 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  Calendar, 
-  Droplet, 
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  Calendar,
+  Droplet,
   Lightbulb,
   Mail,
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import RequireAdmin from "@/components/guards/RequireAdmin";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout } = useAuth();
 
   const navItems = [
     {
@@ -53,20 +55,20 @@ export default function AdminLayout({ children }) {
       icon: Lightbulb,
     },
     {
-    href: "/admin/newsletter",
-    label: "Newsletter",
-    icon: Mail,
-  },
-  {
-    href: "/admin/blood-market",
-    label: "Blood Market",
-    icon: Droplet,
-  },
-  { 
-    href: "/admin/testimonials",
-    label: "Testimonials",
-    icon: Users,
-  },
+      href: "/admin/newsletter",
+      label: "Newsletter",
+      icon: Mail,
+    },
+    {
+      href: "/admin/blood-market",
+      label: "Blood Market",
+      icon: Droplet,
+    },
+    {
+      href: "/admin/testimonials",
+      label: "Testimonials",
+      icon: Users,
+    },
   ];
 
   const isActive = (href) => {
@@ -84,7 +86,11 @@ export default function AdminLayout({ children }) {
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="lg:hidden fixed top-4 left-4 z-50 bg-slate-900 text-white p-2 rounded-lg shadow-lg"
         >
-          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {sidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </button>
 
         {/* Overlay for mobile */}
@@ -101,15 +107,23 @@ export default function AdminLayout({ children }) {
             fixed lg:static inset-y-0 left-0 z-40
             w-72 bg-slate-900 text-white
             transform transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+            ${
+              sidebarOpen
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
+            }
             flex flex-col
           `}
         >
           {/* Header */}
           <div className="p-6 border-b border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-red-600 to-purple-600 p-2 rounded-xl shadow-lg">
-                <Droplet className="w-6 h-6 fill-white" />
+              <div>
+                <img
+                  src="/photo_2025-10-28_11-17-55-removebg-preview.png"
+                  alt="BloodBank Logo"
+                  className="w-20 h-20 object-contain group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
               <div>
                 <h2 className="text-xl font-bold">Admin Panel</h2>
@@ -152,9 +166,9 @@ export default function AdminLayout({ children }) {
           {/* Footer */}
           <div className="p-4 border-t border-slate-800">
             <button
-              onClick={() => {
-                // Add logout logic here
-                window.location.href = "/auth/logout";
+              onClick={async () => {
+                await logout(); // clear auth + firebase
+                router.replace("/login"); // redirect cleanly
               }}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-red-600 hover:text-white transition-all duration-200"
             >
@@ -166,9 +180,7 @@ export default function AdminLayout({ children }) {
 
         {/* Main content */}
         <main className="flex-1 lg:ml-0 w-full">
-          <div className="p-6 lg:p-8">
-            {children}
-          </div>
+          <div className="p-6 lg:p-8">{children}</div>
         </main>
       </div>
     </RequireAdmin>
