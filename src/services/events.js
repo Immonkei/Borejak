@@ -16,6 +16,7 @@ export async function getEventById(id) {
 export function registerForEvent(eventId) {
   return apiFetch(`/api/events/${eventId}/register`, {
     method: "POST",
+    body: payload,
   });
 }
 
