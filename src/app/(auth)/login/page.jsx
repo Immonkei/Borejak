@@ -73,7 +73,7 @@ export default function LoginPage() {
             <div className="bg-white p-3 rounded-xl">
               <Droplets className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-3xl font-bold text-white">LifeStream</h1>
+            <h1 className="text-3xl font-bold text-white">Borejak</h1>
           </div>
 
           <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
@@ -137,12 +137,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 text-red-100 text-sm">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span>1,247 donors active today</span>
-          </div>
-        </div>
+       
       </div>
 
       {/* Right Side - Login Form */}
@@ -288,19 +283,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 mb-2">Need help?</p>
-            <div className="flex items-center justify-center gap-4 text-sm">
-              <Link href="/support" className="text-red-600 hover:underline">
-                Contact Support
-              </Link>
-              <span className="text-gray-300">|</span>
-              <Link href="/faq" className="text-red-600 hover:underline">
-                FAQs
-              </Link>
-            </div>
-          </div>
+         
         </div>
       </div>
     </div>

@@ -85,7 +85,7 @@ export default function RegisterPage() {
             <div className="bg-white p-3 rounded-xl">
               <Droplets className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-3xl font-bold text-white">LifeStream</h1>
+            <h1 className="text-3xl font-bold text-white">Borejak</h1>
           </div>
           
           <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
@@ -128,12 +128,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="relative z-10">
-          <p className="text-red-100 text-sm">
-            "Donating blood was one of the most rewarding experiences. Knowing I helped save lives gives me purpose."
-          </p>
-          <p className="text-white font-semibold mt-2">- Sarah M., Regular Donor</p>
-        </div>
       </div>
 
       {/* Right Side - Registration Form */}
@@ -142,7 +136,7 @@ export default function RegisterPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
             <Droplets className="w-8 h-8 text-red-600" />
-            <h1 className="text-2xl font-bold text-gray-900">LifeStream</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Borejak</h1>
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
