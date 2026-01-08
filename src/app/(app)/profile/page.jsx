@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Mail, Droplet, Calendar, Users, MapPin, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Mail, Droplet, Calendar, Users, MapPin, Save, CheckCircle, AlertCircle, Phone, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { getMyProfile, updateMyProfile } from "@/services/profile";
 
 export default function ProfilePage() {
   const { loading, user, updateUser } = useAuth();
+  const router = useRouter();
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +25,7 @@ export default function ProfilePage() {
         setForm({
           full_name: profile.full_name ?? "",
           email: profile.email ?? "",
+          phone_number: profile.phone_number ?? "",
           blood_type: profile.blood_type ?? "",
           date_of_birth: profile.date_of_birth ?? "",
           gender: profile.gender ?? "",
@@ -49,7 +52,12 @@ export default function ProfilePage() {
       });
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      
+      // Redirect to home page after 1.5 seconds
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,10 +72,13 @@ export default function ProfilePage() {
 
   if (loading || !form) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 border-t-indigo-600 mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading profile...</p>
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-red-100 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+          </div>
+          <p className="text-slate-600 mt-4 font-medium">Loading profile...</p>
         </div>
       </div>
     );
@@ -76,11 +87,22 @@ export default function ProfilePage() {
   const isProfileComplete = form.full_name && form.blood_type && form.date_of_birth && form.gender;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 py-12 px-6">
       <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push("/")}
+          className="group flex items-center gap-2 text-slate-600 hover:text-red-600 mb-6 transition-all"
+        >
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:bg-red-50 transition-all">
+            <ArrowLeft className="w-5 h-5" />
+          </div>
+          <span className="font-medium">Back to Home</span>
+        </button>
+
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-600 to-rose-600 rounded-full shadow-lg shadow-red-500/30 mb-4">
             <User className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-slate-800 mb-2">My Profile</h1>
@@ -104,7 +126,10 @@ export default function ProfilePage() {
         {success && (
           <div className="mb-6 bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3 animate-fade-in">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-            <p className="text-green-800 font-medium">Profile updated successfully!</p>
+            <div>
+              <p className="text-green-800 font-medium">Profile updated successfully!</p>
+              <p className="text-green-600 text-sm">Redirecting to home page...</p>
+            </div>
           </div>
         )}
 
@@ -122,7 +147,7 @@ export default function ProfilePage() {
             {/* Personal Information Section */}
             <div>
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-indigo-600" />
+                <User className="w-5 h-5 text-red-600" />
                 Personal Information
               </h2>
               
@@ -137,7 +162,7 @@ export default function ProfilePage() {
                     placeholder="Enter your full name"
                     value={form.full_name}
                     onChange={(e) => handleChange('full_name', e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   />
                 </div>
 
@@ -156,6 +181,21 @@ export default function ProfilePage() {
                   <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
                 </div>
 
+                {/* Phone Number */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-slate-500" />
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="Enter your phone number (e.g., 012345678)"
+                    value={form.phone_number}
+                    onChange={(e) => handleChange('phone_number', e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  />
+                </div>
+
                 {/* Blood Type & Date of Birth */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -166,7 +206,7 @@ export default function ProfilePage() {
                     <select
                       value={form.blood_type}
                       onChange={(e) => handleChange('blood_type', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-white"
                     >
                       <option value="">Select blood type</option>
                       <option value="A+">A+</option>
@@ -189,7 +229,7 @@ export default function ProfilePage() {
                       type="date"
                       value={form.date_of_birth}
                       onChange={(e) => handleChange('date_of_birth', e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -208,8 +248,8 @@ export default function ProfilePage() {
                         onClick={() => handleChange('gender', gender)}
                         className={`py-3 px-4 rounded-xl font-medium transition-all ${
                           form.gender === gender
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            ? 'bg-red-600 text-white shadow-md shadow-red-500/30'
+                            : 'bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-600'
                         }`}
                       >
                         {gender.charAt(0).toUpperCase() + gender.slice(1)}
@@ -229,7 +269,7 @@ export default function ProfilePage() {
                     value={form.address}
                     onChange={(e) => handleChange('address', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
                   />
                 </div>
               </div>
@@ -242,23 +282,36 @@ export default function ProfilePage() {
               <div className="text-sm text-slate-600">
                 <span className="text-red-500">*</span> Required fields
               </div>
-              <button
-                onClick={saveProfile}
-                disabled={saving || !form.full_name}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
-              >
-                {saving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    Save Profile
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => router.push("/")}
+                  className="px-6 py-3 border-2 border-slate-200 text-slate-600 hover:border-red-200 hover:text-red-600 rounded-xl font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveProfile}
+                  disabled={saving || !form.full_name || success}
+                  className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg shadow-red-500/25 hover:shadow-red-500/40"
+                >
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      Saving...
+                    </>
+                  ) : success ? (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      Saved!
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -306,6 +359,23 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Animation styles */}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

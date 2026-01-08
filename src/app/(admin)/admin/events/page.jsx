@@ -162,7 +162,7 @@ export default function AdminEventsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-300 border-t-purple-600 mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-300 border-t-red-600 mb-4"></div>
           <p className="text-slate-600 font-medium">Loading events...</p>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function AdminEventsPage() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-600 p-3 rounded-xl shadow-lg">
+            <div className="bg-red-600 p-3 rounded-xl shadow-lg">
               <Calendar className="w-7 h-7 text-white" />
             </div>
             <div>
@@ -187,7 +187,7 @@ export default function AdminEventsPage() {
           </div>
           <button
             onClick={openAddModal}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
           >
             <Plus className="w-5 h-5" />
             Add Event
@@ -219,7 +219,7 @@ export default function AdminEventsPage() {
                   </div>
                 ) : (
                   <div className="h-48 bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
-                    <Calendar className="w-16 h-16 text-purple-300" />
+                    <Calendar className="w-16 h-16 text-red-300" />
                   </div>
                 )}
 
@@ -323,7 +323,7 @@ export default function AdminEventsPage() {
                     value={formData.title}
                     onChange={handleInputChange}
                     placeholder="e.g., Blood Donation Drive 2024"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   />
                 </div>
 
@@ -338,7 +338,7 @@ export default function AdminEventsPage() {
                       name="event_date"
                       value={formData.event_date}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
@@ -352,7 +352,7 @@ export default function AdminEventsPage() {
                       onChange={handleInputChange}
                       placeholder="e.g., 100"
                       min="1"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>

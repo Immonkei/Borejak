@@ -86,7 +86,7 @@ export default function LoginPage() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4 mb-12">
-            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
+            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
               <div className="flex items-center gap-3 mb-2">
                 <Heart className="w-5 h-5 text-white" />
                 <span className="text-3xl font-bold text-white">50K+</span>
@@ -94,7 +94,7 @@ export default function LoginPage() {
               <p className="text-red-100 text-sm">Lives Saved</p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
+            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
               <div className="flex items-center gap-3 mb-2">
                 <Award className="w-5 h-5 text-white" />
                 <span className="text-3xl font-bold text-white">15K+</span>
@@ -102,7 +102,7 @@ export default function LoginPage() {
               <p className="text-red-100 text-sm">Active Donors</p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
+            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
               <div className="flex items-center gap-3 mb-2">
                 <MapPin className="w-5 h-5 text-white" />
                 <span className="text-3xl font-bold text-white">200+</span>
@@ -110,7 +110,7 @@ export default function LoginPage() {
               <p className="text-red-100 text-sm">Donation Centers</p>
             </div>
 
-            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
+            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="w-5 h-5 text-white" />
                 <span className="text-3xl font-bold text-white">24/7</span>
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20">
+          <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20">
             <div className="flex items-start gap-4">
               <div className="bg-yellow-400 p-2 rounded-lg">
                 <Heart className="w-5 h-5 text-red-600" />

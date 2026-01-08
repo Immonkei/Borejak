@@ -7,6 +7,9 @@ import {
   Clock,
   Users,
   Building2,
+  CheckCircle,
+  XCircle,
+  Hourglass,
 } from "lucide-react";
 import { getEvents, registerForEvent } from "@/services/events";
 import { useRouter } from "next/navigation";
@@ -34,9 +37,10 @@ export default function EventsPage() {
     try {
       setLoadingId(id);
       await registerForEvent(id);
-      router.push("/profile/donations");
+      alert("Registration submitted! Waiting for admin approval.");
+      await loadEvents(); // Reload to get updated status
     } catch (err) {
-      alert(err.message);
+      alert(err.message || "Registration failed");
     } finally {
       setLoadingId(null);
     }
@@ -61,17 +65,94 @@ export default function EventsPage() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "upcoming":
-        return "bg-blue-500";
-      case "ongoing":
-        return "bg-green-500";
-      case "completed":
-        return "bg-slate-400";
-      case "cancelled":
-        return "bg-red-500";
-      default:
-        return "bg-blue-500";
+      case "upcoming": return "bg-blue-500";
+      case "ongoing": return "bg-green-500";
+      case "completed": return "bg-slate-400";
+      case "cancelled": return "bg-red-500";
+      default: return "bg-blue-500";
     }
+  };
+
+  // Get registration button based on user's registration status
+  const getRegistrationButton = (event) => {
+    const regStatus = event.user_registration_status;
+    const isRegistered = event.is_registered;
+    const isFull = event.max_participants && event.registered_count >= event.max_participants;
+
+    // User has registered - show their status
+    if (isRegistered || regStatus) {
+      if (regStatus === "pending") {
+        return (
+          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-yellow-100 text-yellow-700 flex items-center justify-center gap-2">
+            <Hourglass className="w-5 h-5" />
+            Pending Approval
+          </button>
+        );
+      }
+      if (regStatus === "approved" || regStatus === "completed") {
+        return (
+          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-green-100 text-green-700 flex items-center justify-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            Approved
+          </button>
+        );
+      }
+      if (regStatus === "rejected") {
+        return (
+          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-red-100 text-red-700 flex items-center justify-center gap-2">
+            <XCircle className="w-5 h-5" />
+            Rejected
+          </button>
+        );
+      }
+      // Default registered state
+      return (
+        <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-100 text-slate-600">
+          Already Registered
+        </button>
+      );
+    }
+
+    // Event is full
+    if (isFull) {
+      return (
+        <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-200 text-slate-500">
+          Event Full
+        </button>
+      );
+    }
+
+    // Can register
+    return (
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          register(event.id);
+        }}
+        disabled={loadingId === event.id}
+        className={`mt-6 w-full py-3 rounded-xl font-semibold transition-all ${
+          loadingId === event.id
+            ? "bg-slate-400 text-white cursor-not-allowed"
+            : "bg-gradient-to-r from-red-600 to-purple-600 hover:from-red-700 hover:to-purple-700 text-white"
+        }`}
+      >
+        {loadingId === event.id ? "Registering..." : "Register Now"}
+      </button>
+    );
+  };
+
+  // Get badge for registration status
+  const getRegStatusBadge = (event) => {
+    const regStatus = event.user_registration_status;
+    if (!regStatus && !event.is_registered) return null;
+
+    if (regStatus === "approved" || regStatus === "completed") {
+      return <span className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">✓ Approved</span>;
+    }
+    if (regStatus === "rejected") {
+      return <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">✗ Rejected</span>;
+    }
+    return <span className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold">⏳ Pending</span>;
   };
 
   const filteredEvents = events.filter((event) =>
@@ -96,9 +177,7 @@ export default function EventsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Calendar className="w-10 h-10" />
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Blood Donation Events
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-bold">Blood Donation Events</h1>
           </div>
           <p className="text-xl text-red-100 max-w-2xl">
             Join us in saving lives. Find upcoming blood donation drives near you.
@@ -128,13 +207,9 @@ export default function EventsPage() {
         {filteredEvents.length === 0 ? (
           <div className="text-center py-20">
             <Calendar className="w-20 h-20 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-slate-700 mb-2">
-              No events found
-            </h3>
+            <h3 className="text-2xl font-semibold text-slate-700 mb-2">No events found</h3>
             <p className="text-slate-500">
-              {filter === "all"
-                ? "There are no events scheduled at the moment."
-                : `There are no ${filter} events.`}
+              {filter === "all" ? "There are no events scheduled." : `There are no ${filter} events.`}
             </p>
           </div>
         ) : (
@@ -159,13 +234,13 @@ export default function EventsPage() {
                     </div>
                   )}
 
-                  <div
-                    className={`absolute top-4 right-4 ${getStatusColor(
-                      event.status
-                    )} text-white px-3 py-1 rounded-full text-xs font-semibold`}
-                  >
+                  {/* Event status badge */}
+                  <div className={`absolute top-4 right-4 ${getStatusColor(event.status)} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
                     {event.status}
                   </div>
+
+                  {/* User's registration status badge */}
+                  {getRegStatusBadge(event)}
                 </div>
 
                 {/* Content */}
@@ -178,8 +253,7 @@ export default function EventsPage() {
                     {event.event_date && (
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-red-500" />
-                        {formatDate(event.event_date)} •{" "}
-                        {formatTime(event.event_date)}
+                        {formatDate(event.event_date)} • {formatTime(event.event_date)}
                       </div>
                     )}
 
@@ -199,44 +273,18 @@ export default function EventsPage() {
 
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-red-500" />
-                      {event.registered_count || 0}
-                      {event.max_participants &&
-                        ` / ${event.max_participants}`}
+                      <span>
+                        {event.registered_count || 0}
+                        {event.max_participants && ` / ${event.max_participants}`} participants
+                      </span>
                     </div>
                   </div>
 
-                  {/* Action */}
-                  {(event.status === "upcoming" ||
-                    event.status === "ongoing") && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // ⛔ prevent card navigation
-                        register(event.id);
-                      }}
-                      disabled={
-                        loadingId === event.id ||
-                        event.is_registered ||
-                        (event.max_participants &&
-                          event.registered_count >= event.max_participants)
-                      }
-                      className={`mt-6 w-full py-3 rounded-xl font-semibold transition-all
-                        ${
-                          loadingId === event.id
-                            ? "bg-slate-400 text-white cursor-not-allowed"
-                            : "bg-gradient-to-r from-red-600 to-purple-600 hover:from-red-700 hover:to-purple-700 text-white"
-                        }`}
-                    >
-                      {event.is_registered
-                        ? "Already Registered"
-                        : loadingId === event.id
-                        ? "Registering..."
-                        : event.max_participants &&
-                          event.registered_count >= event.max_participants
-                        ? "Event Full"
-                        : event.status === "ongoing"
-                        ? "Join Now"
-                        : "Register Now"}
-                    </button>
+                  {/* Registration Button */}
+                  {(event.status === "upcoming" || event.status === "ongoing") && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      {getRegistrationButton(event)}
+                    </div>
                   )}
                 </div>
               </div>

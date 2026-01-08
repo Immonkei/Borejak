@@ -14,7 +14,8 @@ import {
   Activity,
   RefreshCw,
   BarChart3,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
@@ -81,14 +82,14 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="min-h-screen p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-3" />
             <div className="text-red-600 font-medium mb-4">{error}</div>
             <button
               onClick={loadDashboard}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
             >
               Try Again
             </button>
@@ -99,22 +100,24 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen p-2">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <BarChart3 className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-xl">
+                  <BarChart3 className="w-8 h-8 text-red-600" />
+                </div>
                 Dashboard Overview
               </h1>
-              <p className="text-gray-600 mt-1">Monitor your platform's key metrics</p>
+              <p className="text-slate-600 mt-2">Monitor your platform's key metrics</p>
             </div>
             <button
               onClick={loadDashboard}
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all disabled:opacity-50 font-medium shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -123,18 +126,18 @@ export default function AdminDashboard() {
         </div>
 
         {/* Primary Stats */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-600" />
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-red-600" />
             Core Metrics
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <StatCard
               title="Total Users"
               value={stats?.users}
               loading={loading}
               icon={Users}
-              color="blue"
+              color="red"
               trend="+12% from last month"
             />
             <StatCard
@@ -142,14 +145,14 @@ export default function AdminDashboard() {
               value={stats?.hospitals}
               loading={loading}
               icon={Building2}
-              color="purple"
+              color="red"
             />
             <StatCard
               title="Total Events"
               value={stats?.events}
               loading={loading}
               icon={Calendar}
-              color="green"
+              color="red"
             />
             <StatCard
               title="Donations"
@@ -162,25 +165,25 @@ export default function AdminDashboard() {
         </div>
 
         {/* Content & Engagement */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-green-600" />
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-red-600" />
             Content & Engagement
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <StatCard
               title="Health Tips"
               value={stats?.tips}
               loading={loading}
               icon={Lightbulb}
-              color="yellow"
+              color="amber"
             />
             <StatCard
               title="Newsletter Subscribers"
               value={stats?.subscribers}
               loading={loading}
               icon={Mail}
-              color="indigo"
+              color="red"
             />
             <StatCard
               title="Pending Reviews"
@@ -194,57 +197,57 @@ export default function AdminDashboard() {
               title="Approved Testimonials"
               value={stats?.approvedTestimonials}
               loading={loading}
-              icon={MessageSquare}
-              color="teal"
+              icon={CheckCircle}
+              color="green"
             />
           </div>
         </div>
 
         {/* Blood Services */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Droplet className="w-5 h-5 text-red-600" />
             Blood Services
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <StatCard
               title="Blood Market Listings"
               value={stats?.bloodMarket}
               loading={loading}
               icon={Droplet}
-              color="rose"
+              color="red"
               large
             />
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:border-red-100 transition-all">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-red-100 rounded-lg">
+                <div className="p-3 bg-red-100 rounded-xl">
                   <TrendingUp className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Quick Stats</p>
-                  <p className="text-lg font-bold text-gray-900">Platform Health</p>
+                  <p className="text-sm text-slate-500">Quick Stats</p>
+                  <p className="text-lg font-bold text-slate-900">Platform Health</p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Records</span>
-                  <span className="font-semibold text-gray-900">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+                  <span className="text-slate-600">Total Records</span>
+                  <span className="font-bold text-slate-900">
                     {loading ? "..." : (stats?.users || 0) + (stats?.hospitals || 0) + (stats?.events || 0)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Active Services</span>
-                  <span className="font-semibold text-green-600">8</span>
+                <div className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+                  <span className="text-slate-600">Active Services</span>
+                  <span className="font-bold text-green-600">8</span>
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 shadow-sm text-white">
+            <div className="bg-gradient-to-br from-red-600 to-rose-600 rounded-2xl p-6 shadow-lg shadow-red-500/20 text-white">
               <div className="mb-4">
-                <Activity className="w-8 h-8 mb-2 opacity-80" />
-                <p className="text-sm opacity-90">System Status</p>
+                <Activity className="w-8 h-8 mb-2 opacity-90" />
+                <p className="text-sm text-red-100">System Status</p>
                 <p className="text-2xl font-bold mt-1">All Systems Operational</p>
               </div>
-              <div className="flex items-center gap-2 text-sm opacity-90">
+              <div className="flex items-center gap-2 text-sm text-red-100">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span>Real-time monitoring active</span>
               </div>
@@ -253,7 +256,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-slate-500 bg-white rounded-xl py-3 border border-slate-100">
           Last updated: {new Date().toLocaleString()}
         </div>
       </div>
@@ -263,28 +266,41 @@ export default function AdminDashboard() {
 
 function StatCard({ title, value, loading, icon: Icon, color, trend, alert, large }) {
   const colorClasses = {
-    blue: "bg-blue-100 text-blue-600",
-    purple: "bg-purple-100 text-purple-600",
-    green: "bg-green-100 text-green-600",
-    red: "bg-red-100 text-red-600",
-    yellow: "bg-yellow-100 text-yellow-600",
-    indigo: "bg-indigo-100 text-indigo-600",
-    orange: "bg-orange-100 text-orange-600",
-    teal: "bg-teal-100 text-teal-600",
-    rose: "bg-rose-100 text-rose-600",
+    red: {
+      bg: "bg-red-50",
+      icon: "bg-red-100 text-red-600",
+      border: "border-red-100 hover:border-red-200",
+    },
+    amber: {
+      bg: "bg-amber-50",
+      icon: "bg-amber-100 text-amber-600",
+      border: "border-amber-100 hover:border-amber-200",
+    },
+    green: {
+      bg: "bg-green-50",
+      icon: "bg-green-100 text-green-600",
+      border: "border-green-100 hover:border-green-200",
+    },
+    orange: {
+      bg: "bg-orange-50",
+      icon: "bg-orange-100 text-orange-600",
+      border: "border-orange-100 hover:border-orange-200",
+    },
   };
 
+  const colors = colorClasses[color] || colorClasses.red;
+
   return (
-    <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 transition-transform hover:scale-105 ${alert ? 'ring-2 ring-orange-400' : ''}`}>
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+    <div className={`bg-white rounded-2xl p-6 shadow-sm border transition-all hover:shadow-lg ${colors.border} ${alert ? 'ring-2 ring-orange-400' : ''}`}>
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-xl ${colors.icon}`}>
           <Icon className="w-6 h-6" />
         </div>
         <div className="flex-1">
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className={`${large ? 'text-4xl' : 'text-3xl'} font-bold text-gray-900 mt-1`}>
+          <p className="text-sm text-slate-500 font-medium">{title}</p>
+          <p className={`${large ? 'text-4xl' : 'text-3xl'} font-bold text-slate-900 mt-1`}>
             {loading ? (
-              <span className="text-gray-300">...</span>
+              <span className="text-slate-300">...</span>
             ) : (
               value ?? 0
             )}
@@ -292,13 +308,13 @@ function StatCard({ title, value, loading, icon: Icon, color, trend, alert, larg
         </div>
       </div>
       {trend && !loading && (
-        <div className="flex items-center gap-1 text-xs text-green-600 mt-2">
+        <div className="flex items-center gap-1 text-xs text-green-600 mt-3 bg-green-50 px-2 py-1 rounded-lg w-fit">
           <TrendingUp className="w-3 h-3" />
           <span>{trend}</span>
         </div>
       )}
       {alert && !loading && value > 0 && (
-        <div className="flex items-center gap-1 text-xs text-orange-600 mt-2">
+        <div className="flex items-center gap-1 text-xs text-orange-600 mt-3 bg-orange-50 px-2 py-1 rounded-lg w-fit">
           <AlertCircle className="w-3 h-3" />
           <span>Requires attention</span>
         </div>
