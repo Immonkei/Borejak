@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { User, Mail, Droplet, Calendar, Users, MapPin, Save, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getMyProfile, updateMyProfile } from "@/services/profile";
@@ -11,6 +12,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || "");
+
 
   useEffect(() => {
     if (loading) return;
