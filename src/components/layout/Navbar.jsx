@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -25,11 +26,7 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   if (pathname.startsWith("/admin")) return null;
-
-  if (pathname === "/complete-profile") {
-    return null;
-  }
-
+  if (pathname === "/complete-profile") return null;
   if (!isAuthenticated) return null;
 
   const handleLogout = () => {
@@ -37,20 +34,21 @@ export default function Navbar() {
     router.replace("/login");
   };
 
-  // Shared link styles
+  // Link styles - dark text on white background
   const base =
-    "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 inline-flex items-center gap-2";
+    "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 inline-flex items-center gap-2";
   const active =
-    "bg-accent text-secondary shadow-lg shadow-accent/30 scale-105 font-semibold";
+    "bg-red-600 text-white shadow-lg shadow-red-500/30";
   const inactive =
-    "text-primary hover:text-white hover:bg-white/10 backdrop-blur-sm";
+    "text-slate-600 hover:text-red-600 hover:bg-red-50";
 
   const navItem = (path) => `${base} ${pathname === path ? active : inactive}`;
 
   return (
-    <header className="sticky top-0 bg-gradient-to-r from-red-600 to-red-700 backdrop-blur-lg shadow-2xl z-50 border-b border-white/10">
+    <header className="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg shadow-slate-200/50 z-50 border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo - Now stands out on white background */}
           <Link href="/" className="flex items-center shrink-0 group">
             <img
               src="/photo_2025-10-28_11-17-55-removebg-preview.png"
@@ -60,7 +58,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
+          <nav className="hidden md:flex items-center space-x-1">
             <Link href="/" className={navItem("/")}>
               <Home className="w-4 h-4" />
               Home
@@ -83,42 +81,32 @@ export default function Navbar() {
             </Link>
 
             {/* Profile Dropdown */}
-            <div className="relative ml-4 pl-4 border-l border-white/20">
+            <div className="relative ml-4 pl-4 border-l border-slate-200">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all duration-300"
               >
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                  <User className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-red-500 to-rose-500 flex items-center justify-center shadow-md">
+                  <User className="w-4 h-4 text-white" />
                 </div>
-                <span className="hidden lg:block">
+                <span className="hidden lg:block max-w-[100px] truncate">
                   {user?.email?.split("@")[0]}
                 </span>
-                <svg
-                  className={`w-4 h-4 transition-transform ${
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
                     profileOpen ? "rotate-180" : ""
                   }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                />
               </button>
 
               {/* Dropdown Menu */}
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-                  <div className="px-4 py-3 bg-gradient-to-r from-red-50 to-pink-50 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50 animate-fade-in">
+                  <div className="px-4 py-4 bg-gradient-to-r from-red-500 to-rose-500">
+                    <p className="text-sm font-semibold text-white">
                       Signed in as
                     </p>
-                    <p className="text-sm text-gray-600 truncate">
+                    <p className="text-sm text-red-100 truncate">
                       {user?.email}
                     </p>
                   </div>
@@ -126,49 +114,53 @@ export default function Navbar() {
                   <div className="py-2">
                     <Link
                       href="/profile"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <User className="w-4 h-4 text-gray-500" />
+                      <User className="w-4 h-4" />
                       Your Profile
                     </Link>
                     <Link
                       href="/profile/donations"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <Heart className="w-4 h-4 text-red-500" />
+                      <Heart className="w-4 h-4" />
                       My Donations
                     </Link>
                     <Link
                       href="/profile/benefits"
-                      className={navItem("/profile/benefits")}
-                      onClick={() => setOpen(false)}
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
                       <Heart className="w-4 h-4" />
                       My Benefits
                     </Link>
                     <Link
                       href="/profile/testimonials"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <Heart className="w-4 h-4 text-pink-500" />
+                      <Heart className="w-4 h-4" />
                       My Testimonials
                     </Link>
 
                     {isAdmin && (
                       <Link
                         href="/admin"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                       >
-                        <Settings className="w-4 h-4 text-gray-500" />
+                        <Settings className="w-4 h-4" />
                         Admin Dashboard
                       </Link>
                     )}
                   </div>
 
-                  <div className="border-t border-gray-100">
+                  <div className="border-t border-slate-100 p-2">
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign out
@@ -181,7 +173,7 @@ export default function Navbar() {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-300"
+            className="md:hidden text-slate-700 hover:bg-red-50 hover:text-red-600 p-2 rounded-xl transition-all duration-300"
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
@@ -193,13 +185,13 @@ export default function Navbar() {
       {/* Mobile Dropdown */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ${
-          open ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
-        } bg-red-700/95 backdrop-blur-sm`}
+          open ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+        } bg-white border-t border-slate-100`}
       >
         <div className="px-4 pt-3 pb-6 space-y-2">
           <Link
             href="/"
-            className={navItem("/")}
+            className={`${navItem("/")} w-full`}
             onClick={() => setOpen(false)}
           >
             <Home className="w-4 h-4" />
@@ -207,7 +199,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/blood-market"
-            className={navItem("/blood-market")}
+            className={`${navItem("/blood-market")} w-full`}
             onClick={() => setOpen(false)}
           >
             <Heart className="w-4 h-4" />
@@ -215,7 +207,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/hospitals"
-            className={navItem("/hospitals")}
+            className={`${navItem("/hospitals")} w-full`}
             onClick={() => setOpen(false)}
           >
             <Building2 className="w-4 h-4" />
@@ -223,7 +215,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/events"
-            className={navItem("/events")}
+            className={`${navItem("/events")} w-full`}
             onClick={() => setOpen(false)}
           >
             <Calendar className="w-4 h-4" />
@@ -231,16 +223,16 @@ export default function Navbar() {
           </Link>
           <Link
             href="/tips"
-            className={navItem("/tips")}
+            className={`${navItem("/tips")} w-full`}
             onClick={() => setOpen(false)}
           >
             <Lightbulb className="w-4 h-4" />
             Tips
           </Link>
 
-          <div className="pt-4 mt-4 border-t border-white/20">
-            <div className="bg-white/10 rounded-lg p-3 mb-3">
-              <p className="text-xs text-white/70 mb-1">Signed in as</p>
+          <div className="pt-4 mt-4 border-t border-slate-200">
+            <div className="bg-gradient-to-r from-red-500 to-rose-500 rounded-2xl p-4 mb-4">
+              <p className="text-xs text-red-100 mb-1">Signed in as</p>
               <p className="text-sm text-white font-medium truncate">
                 {user?.email}
               </p>
@@ -249,7 +241,7 @@ export default function Navbar() {
             <div className="space-y-2">
               <Link
                 href="/profile"
-                className={navItem("/profile")}
+                className={`${navItem("/profile")} w-full`}
                 onClick={() => setOpen(false)}
               >
                 <User className="w-4 h-4" />
@@ -257,7 +249,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/profile/donations"
-                className={navItem("/profile/donations")}
+                className={`${navItem("/profile/donations")} w-full`}
                 onClick={() => setOpen(false)}
               >
                 <Heart className="w-4 h-4" />
@@ -265,7 +257,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/profile/benefits"
-                className={navItem("/profile/benefits")}
+                className={`${navItem("/profile/benefits")} w-full`}
                 onClick={() => setOpen(false)}
               >
                 <Heart className="w-4 h-4" />
@@ -273,7 +265,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/profile/testimonials"
-                className={navItem("/profile/testimonials")}
+                className={`${navItem("/profile/testimonials")} w-full`}
                 onClick={() => setOpen(false)}
               >
                 <Heart className="w-4 h-4" />
@@ -282,7 +274,7 @@ export default function Navbar() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className={navItem("/admin")}
+                  className={`${navItem("/admin")} w-full`}
                   onClick={() => setOpen(false)}
                 >
                   <Settings className="w-4 h-4" />
@@ -295,7 +287,7 @@ export default function Navbar() {
                   handleLogout();
                   setOpen(false);
                 }}
-                className="w-full px-4 py-2.5 rounded-lg text-sm font-medium bg-white/10 text-white hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 border border-white/20"
+                className="w-full px-4 py-3 rounded-xl text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-red-500/30"
               >
                 <LogOut className="w-4 h-4" />
                 Sign out
@@ -312,6 +304,23 @@ export default function Navbar() {
           onClick={() => setProfileOpen(false)}
         />
       )}
+
+      {/* Animation styles */}
+      <style jsx global>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out forwards;
+        }
+      `}</style>
     </header>
   );
 }

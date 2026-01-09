@@ -72,7 +72,7 @@ export default function AdminUsersPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <UserCog className="w-8 h-8 text-purple-600" />
+                <UserCog className="w-8 h-8 text-red-600" />
                 User Management
               </h1>
               <p className="text-gray-600 mt-1">Manage user roles and access</p>
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
         {/* Users Table */}
         {loading ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <RefreshCw className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-4" />
+            <RefreshCw className="w-8 h-8 text-red-600 animate-spin mx-auto mb-4" />
             <p className="text-gray-500">Loading users...</p>
           </div>
         ) : (
@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
                     <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-red-600 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold">
                             {u.full_name?.charAt(0)?.toUpperCase() || u.email?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div>

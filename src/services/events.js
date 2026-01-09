@@ -1,26 +1,27 @@
 import { apiFetch } from "@/lib/api";
 
-// 🌍 Public
+// 🌍 Public - Get all events
 export async function getEvents() {
   const res = await apiFetch("/api/events");
-  return res.data;
+  return res.data || [];
 }
 
+// 🌍 Public - Get single event
 export async function getEventById(id) {
   const res = await apiFetch(`/api/events/${id}`);
   return res.data;
 }
 
-
-// 🔥 Register user for event
-export function registerForEvent(eventId) {
-  return apiFetch(`/api/events/${eventId}/register`, {
+// 🔥 Register user for event (creates pending donation)
+// FIXED: removed undefined 'payload' variable
+export async function registerForEvent(eventId) {
+  const res = await apiFetch(`/api/events/${eventId}/register`, {
     method: "POST",
-    body: payload,
   });
+  return res;
 }
 
-// 🔒 Admin
+// 🔒 Admin - Create event
 export function createEvent(data) {
   return apiFetch("/api/events", {
     method: "POST",
@@ -28,6 +29,7 @@ export function createEvent(data) {
   });
 }
 
+// 🔒 Admin - Update event
 export function updateEvent(id, data) {
   return apiFetch(`/api/events/${id}`, {
     method: "PUT",
@@ -35,6 +37,7 @@ export function updateEvent(id, data) {
   });
 }
 
+// 🔒 Admin - Delete event
 export function deleteEvent(id) {
   return apiFetch(`/api/events/${id}`, {
     method: "DELETE",
