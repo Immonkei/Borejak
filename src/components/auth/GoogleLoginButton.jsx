@@ -1,30 +1,36 @@
-'use client';
+"use client";
 
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
-import { apiFetch } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase";
+import { apiFetch } from "@/lib/api";
 
-export default function GoogleLoginButton() {
-  const { login } = useAuth();
-
+export default function GoogleLoginButton({
+  onSuccess,
+  onError,
+  disabled,
+}) {
   async function handleGoogle() {
-    const cred = await signInWithPopup(auth, googleProvider);
+    try {
+      const cred = await signInWithPopup(auth, googleProvider);
+      const firebaseToken = await cred.user.getIdToken();
 
-    const firebaseToken = await cred.user.getIdToken();
+      const res = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: { firebaseToken },
+      });
 
-    const res = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: { firebaseToken },
-    });
-
-    login(res);
+      onSuccess(res);
+    } catch (err) {
+      console.error(err);
+      onError?.();
+    }
   }
 
   return (
     <button
       onClick={handleGoogle}
-      className="w-full border p-2 rounded"
+      disabled={disabled}
+      className="w-full border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition font-medium"
     >
       Continue with Google
     </button>
