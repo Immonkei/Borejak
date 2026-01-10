@@ -133,7 +133,7 @@ export default function EventsPage() {
         className={`mt-6 w-full py-3 rounded-xl font-semibold transition-all ${
           loadingId === event.id
             ? "bg-slate-400 text-white cursor-not-allowed"
-            : "bg-gradient-to-r from-red-600 to-purple-600 hover:from-red-700 hover:to-purple-700 text-white"
+            : "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-700 text-white"
         }`}
       >
         {loadingId === event.id ? "Registering..." : "Register Now"}
@@ -173,7 +173,7 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-purple-50">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-red-600 to-purple-600 text-white py-16 px-6">
+      <div className="bg-gradient-to-r from-red-600 to-red-500 text-white py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Calendar className="w-10 h-10" />
@@ -229,7 +229,7 @@ export default function EventsPage() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-red-400 to-purple-500 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-red-400 to-red-500 flex items-center justify-center">
                       <Calendar className="w-16 h-16 text-white opacity-50" />
                     </div>
                   )}

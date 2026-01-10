@@ -15,7 +15,10 @@ import {
   LogOut,
   Menu,
   X,
+  Award,
   ChevronDown,
+  Droplet,
+  MessageCircle,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -125,7 +128,7 @@ export default function Navbar() {
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <Heart className="w-4 h-4" />
+                      <Droplet className="w-4 h-4" />
                       My Donations
                     </Link>
                     <Link
@@ -133,7 +136,7 @@ export default function Navbar() {
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <Heart className="w-4 h-4" />
+                      <Award className="w-4 h-4" />
                       My Benefits
                     </Link>
                     <Link
@@ -141,7 +144,7 @@ export default function Navbar() {
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
-                      <Heart className="w-4 h-4" />
+                      <MessageCircle className="w-4 h-4" />
                       My Testimonials
                     </Link>
 

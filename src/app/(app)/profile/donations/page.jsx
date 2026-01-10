@@ -42,7 +42,7 @@ export default function MyDonationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -57,7 +57,7 @@ export default function MyDonationsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50">
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 flex items-start gap-4">
             <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
@@ -78,7 +78,7 @@ export default function MyDonationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
