@@ -183,7 +183,7 @@ export default function EventsPage() {
             Join us in saving lives. Find upcoming blood donation drives near you.
           </p>
         </div>
-      </div>
+      </div> 
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Filters */}
