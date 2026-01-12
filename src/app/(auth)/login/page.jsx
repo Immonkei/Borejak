@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
+import PhoneLogin from "@/components/auth/PhoneLogin";
 import Link from "next/link";
 import { Heart, Droplets, Clock, MapPin, Award } from "lucide-react";
 
@@ -14,10 +15,12 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
+  const [mode, setMode] = useState("email"); // email | phone
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   async function handleAuthSuccess(res) {
     const finalUser = await login(res);
 
@@ -44,7 +47,6 @@ export default function LoginPage() {
 
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-
       const firebaseToken = await cred.user.getIdToken();
 
       const res = await apiFetch("/api/auth/login", {
@@ -52,8 +54,8 @@ export default function LoginPage() {
         body: { firebaseToken },
       });
 
-      handleAuthSuccess(res);
-    } catch (err) {
+      await handleAuthSuccess(res);
+    } catch {
       setError("Invalid email or password");
     } finally {
       setLoading(false);
@@ -62,12 +64,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-red-50 via-white to-rose-50">
-      {/* Left Side - Branding & Stats */}
+      {/* LEFT SIDE */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-red-600 to-rose-700 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-white opacity-5 rounded-full translate-y-1/2 -translate-x-1/2" />
-
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-white p-3 rounded-xl">
@@ -76,216 +74,124 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-white">Borejak</h1>
           </div>
 
-          <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
+          <h2 className="text-4xl font-bold text-white mb-4">
             Welcome Back, Hero
           </h2>
-          <p className="text-red-100 text-lg mb-12">
-            Continue your life-saving journey. Every login brings you closer to
-            making a difference.
+          <p className="text-red-100 mb-10">
+            Continue your life-saving journey.
           </p>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-12">
-            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
-              <div className="flex items-center gap-3 mb-2">
-                <Heart className="w-5 h-5 text-white" />
-                <span className="text-3xl font-bold text-white">50K+</span>
-              </div>
-              <p className="text-red-100 text-sm">Lives Saved</p>
-            </div>
-
-            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
-              <div className="flex items-center gap-3 mb-2">
-                <Award className="w-5 h-5 text-white" />
-                <span className="text-3xl font-bold text-white">15K+</span>
-              </div>
-              <p className="text-red-100 text-sm">Active Donors</p>
-            </div>
-
-            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
-              <div className="flex items-center gap-3 mb-2">
-                <MapPin className="w-5 h-5 text-white" />
-                <span className="text-3xl font-bold text-white">200+</span>
-              </div>
-              <p className="text-red-100 text-sm">Donation Centers</p>
-            </div>
-
-            <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-5 border border-white border-opacity-20">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="w-5 h-5 text-white" />
-                <span className="text-3xl font-bold text-white">24/7</span>
-              </div>
-              <p className="text-red-100 text-sm">Support Available</p>
-            </div>
-          </div>
-
-          <div className="bg-red-450 bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-white border-opacity-20">
-            <div className="flex items-start gap-4">
-              <div className="bg-yellow-400 p-2 rounded-lg">
-                <Heart className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <h3 className="text-white font-semibold mb-1">Urgent Need</h3>
-                <p className="text-red-100 text-sm mb-3">
-                  O- blood type urgently needed at Central Hospital
-                </p>
-                <button className="bg-white text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition">
-                  View Details
-                </button>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Stat icon={Heart} value="50K+" label="Lives Saved" />
+            <Stat icon={Award} value="15K+" label="Active Donors" />
+            <Stat icon={MapPin} value="200+" label="Centers" />
+            <Stat icon={Clock} value="24/7" label="Support" />
           </div>
         </div>
-
-       
       </div>
 
-      {/* Right Side - Login Form */}
+      {/* RIGHT SIDE */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <Droplets className="w-8 h-8 text-red-600" />
-            <h1 className="text-2xl font-bold text-gray-900">LifeStream</h1>
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+          <h2 className="text-3xl font-bold text-center mb-2">
+            Welcome Back
+          </h2>
+          <p className="text-gray-600 text-center mb-6">
+            Sign in to continue saving lives
+          </p>
+
+          {/* LOGIN MODE SWITCH */}
+          <div className="flex mb-6 rounded-lg overflow-hidden border">
+            <button
+              onClick={() => setMode("email")}
+              className={`flex-1 py-2 font-semibold ${
+                mode === "email"
+                  ? "bg-red-600 text-white"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              Email
+            </button>
+            <button
+              onClick={() => setMode("phone")}
+              className={`flex-1 py-2 font-semibold ${
+                mode === "phone"
+                  ? "bg-red-600 text-white"
+                  : "bg-white text-gray-700"
+              }`}
+            >
+              Phone OTP
+            </button>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome Back
-              </h2>
-              <p className="text-gray-600">Sign in to continue saving lives</p>
+          {error && (
+            <div className="bg-red-50 text-red-700 p-3 rounded mb-4">
+              {error}
             </div>
+          )}
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-start gap-2">
-                <span className="text-red-500 mt-0.5">⚠</span>
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
+          {/* EMAIL LOGIN */}
+          {mode === "email" ? (
+            <>
+              <input
+                type="email"
+                placeholder="Email"
+                className="border w-full px-4 py-3 rounded mb-3"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="your.email@example.com"
-                  className="border border-gray-300 w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Password
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-red-600 hover:text-red-700 hover:underline"
-                  >
-                    Forgot?
-                  </Link>
-                </div>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  className="border border-gray-300 w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm text-gray-600 cursor-pointer"
-                >
-                  Remember me for 30 days
-                </label>
-              </div>
+              <input
+                type="password"
+                placeholder="Password"
+                className="border w-full px-4 py-3 rounded mb-4"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
               <button
                 onClick={handleLogin}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white py-3.5 rounded-lg font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-200 hover:shadow-xl"
+                className="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white py-3 rounded-lg font-semibold"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Logging in...
-                  </span>
-                ) : (
-                  "Sign In"
-                )}
+                {loading ? "Logging in..." : "Sign In"}
               </button>
+            </>
+          ) : (
+            <PhoneLogin onSuccess={handleAuthSuccess} />
+          )}
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500 font-medium">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <GoogleLoginButton
-                  onSuccess={handleAuthSuccess}
-                  onError={() => setError("Google sign-in failed")}
-                  disabled={loading}
-                />
-              </div>
-              <p className="text-sm text-center text-gray-600 pt-4">
-                Don't have an account?{" "}
-                <Link
-                  href="/register"
-                  className="text-red-600 hover:text-red-700 font-semibold hover:underline"
-                >
-                  Sign Up
-                </Link>
-              </p>
-
-              <div className="pt-4 border-t border-gray-200 mt-6">
-                <p className="text-xs text-center text-gray-500">
-                  Protected by industry-standard encryption
-                </p>
-              </div>
-            </div>
+          {/* DIVIDER */}
+          <div className="my-6 text-center text-gray-500 text-sm">
+            Or continue with
           </div>
 
-         
+          {/* GOOGLE LOGIN */}
+          <GoogleLoginButton
+            onSuccess={handleAuthSuccess}
+            onError={() => setError("Google sign-in failed")}
+            disabled={loading}
+          />
+
+          <p className="text-center text-sm text-gray-600 mt-6">
+            Don't have an account?{" "}
+            <Link href="/register" className="text-red-600 font-semibold">
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* SMALL STAT COMPONENT */
+function Stat({ icon: Icon, value, label }) {
+  return (
+    <div className="bg-white/10 rounded-xl p-4 text-white">
+      <Icon className="w-5 h-5 mb-2" />
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-sm">{label}</div>
     </div>
   );
 }
