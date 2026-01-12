@@ -9,55 +9,58 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔄 Load auth from localStorage
+  // 🔄 Restore session (guest-first)
   useEffect(() => {
-    const stored = localStorage.getItem("auth");
-    if (stored) {
+    try {
+      const stored = localStorage.getItem("auth");
+      if (!stored) return;
+
       const data = JSON.parse(stored);
-      setToken(data.token ?? null);
-      setUser(data.user ?? null);
+      if (data?.token && data?.user) {
+        setToken(data.token);
+        setUser(data.user);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   // 🔐 Login
-async function login(data) {
-  const token = data.token || data.data?.token;
-  const userData = data.user || data.data?.user;
+  async function login(data) {
+    const token = data.token || data.data?.token;
+    const userData = data.user || data.data?.user;
 
-  setToken(token);
-  setUser(userData);
+    setToken(token);
+    setUser(userData);
+    localStorage.setItem("auth", JSON.stringify({ token, user: userData }));
 
-  localStorage.setItem("auth", JSON.stringify({ token, user: userData }));
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      if (!res.ok) return userData;
 
-    if (!res.ok) return userData;
+      const { user: profile } = await res.json();
 
-    const { user: profile } = await res.json();
+      const completed = Boolean(
+        profile?.full_name &&
+        profile?.blood_type &&
+        profile?.date_of_birth &&
+        profile?.gender
+      );
 
-    const completed = Boolean(
-      profile?.full_name &&
-      profile?.blood_type &&
-      profile?.date_of_birth &&
-      profile?.gender
-    );
+      const mergedUser = { ...profile, profile_completed: completed };
 
-    const mergedUser = { ...profile, profile_completed: completed };
+      setUser(mergedUser);
+      localStorage.setItem("auth", JSON.stringify({ token, user: mergedUser }));
 
-    setUser(mergedUser);
-    localStorage.setItem("auth", JSON.stringify({ token, user: mergedUser }));
-
-    return mergedUser; // ✅ IMPORTANT
-  } catch {
-    return userData;
+      return mergedUser;
+    } catch {
+      return userData;
+    }
   }
-}
-
-
 
   // 🚪 Logout
   function logout() {
@@ -66,7 +69,7 @@ async function login(data) {
     localStorage.removeItem("auth");
   }
 
-  // 🔄 Update user (profile sync)
+  // 🔄 Update user
   function updateUser(updatedUser) {
     setUser(updatedUser);
 
@@ -75,17 +78,9 @@ async function login(data) {
 
     localStorage.setItem(
       "auth",
-      JSON.stringify({
-        token: stored.token,
-        user: updatedUser,
-      })
+      JSON.stringify({ token: stored.token, user: updatedUser })
     );
   }
-
-  // 🧠 DERIVED STATES (IMPORTANT)
-  const isAuthenticated = !!token;
-  const role = user?.role ?? "user";
-  const isAdmin = role === "admin";
 
   return (
     <AuthContext.Provider
@@ -94,12 +89,12 @@ async function login(data) {
         user,
         loading,
 
-        // 🔑 helpers
-        isAuthenticated,
-        isAdmin,
-        role,
+        // derived
+        isAuthenticated: !!user,
+        role: user?.role ?? null,
+        isAdmin: user?.role === "admin",
 
-        // 🔧 actions
+        // actions
         login,
         logout,
         updateUser,

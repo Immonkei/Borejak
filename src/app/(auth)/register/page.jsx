@@ -18,6 +18,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+
 
   function handleAuthSuccess(res) {
     login(res);
@@ -51,9 +53,9 @@ export default function RegisterPage() {
 
       const firebaseToken = await cred.user.getIdToken();
 
-      const res = await apiFetch("/api/auth/login", {
+      const res = await apiFetch("/api/auth/register", {
         method: "POST",
-        body: { firebaseToken },
+        body: { firebaseToken , phone_number: phoneNumber },
       });
 
       handleAuthSuccess(res);
@@ -166,6 +168,21 @@ export default function RegisterPage() {
                   disabled={loading}
                 />
               </div>
+
+              <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Phone Number
+  </label>
+  <input
+    type="tel"
+    placeholder="012345678"
+    className="border border-gray-300 w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-red-500"
+    value={phoneNumber}
+    onChange={(e) => setPhoneNumber(e.target.value)}
+    disabled={loading}
+  />
+</div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

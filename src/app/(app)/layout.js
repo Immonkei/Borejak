@@ -7,33 +7,29 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export default function AppLayout({ children }) {
-  const { loading, isAuthenticated, user } = useAuth();
+  const { loading, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-useEffect(() => {
-  if (loading) return;
+  useEffect(() => {
+    if (loading) return;
 
-  // ❌ Not logged in
-  if (!isAuthenticated) {
-    router.replace("/login");
-    return;
-  }
-
-  // 🔒 Admins never use app layout
-  if (user?.role === "admin") {
-    router.replace("/admin");
-    return;
-  }
-
-  // ⚠️ ONLY redirect when backend explicitly says false
-  if (user?.profile_completed === false) {
-    if (pathname !== "/complete-profile") {
-      router.replace("/complete-profile");
+    if (!user) {
+      router.replace("/login");
+      return;
     }
-  }
-}, [loading, isAuthenticated, user, pathname, router]);
 
+    if (user.role === "admin") {
+      router.replace("/admin/dashboard");
+      return;
+    }
+
+    if (user.profile_completed === false) {
+      if (pathname !== "/complete-profile") {
+        router.replace("/complete-profile");
+      }
+    }
+  }, [loading, user, pathname, router]);
 
   if (loading) {
     return <div className="p-6 text-center">Loading…</div>;
@@ -42,9 +38,7 @@ useEffect(() => {
   return (
     <>
       <Navbar />
-      <main className="min-h-[calc(100vh-64px)]">
-        {children}
-      </main>
+      <main className="min-h-[calc(100vh-64px)]">{children}</main>
       <Footer />
     </>
   );
