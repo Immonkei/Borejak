@@ -1,7 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { GoogleAuthProvider } from 'firebase/auth';
-
+// src/lib/firebase.js
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -9,7 +8,11 @@ const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
+// ✅ Prevent re-initializing Firebase on hot reload
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
+// ✅ REAL Auth instance (fixes Recaptcha error)
+export const auth = getAuth(app);
+
+// ✅ Provider
+export const googleProvider = new GoogleAuthProvider();

@@ -28,16 +28,16 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // keep original visibility rules
   if (pathname.startsWith("/admin")) return null;
   if (pathname === "/complete-profile") return null;
 
   const handleLogout = () => {
     logout();
+    setOpen(false);
+    setProfileOpen(false);
     router.replace("/login");
   };
 
-  // 🔐 LOGIN GUARD (LOGIC ONLY)
   const requireLogin = (e, path) => {
     if (!isAuthenticated) {
       e.preventDefault();
@@ -45,18 +45,18 @@ export default function Navbar() {
       router.push("/login");
       return;
     }
+    setOpen(false);
     router.push(path);
   };
 
-  // styles (UNCHANGED)
   const base =
     "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 inline-flex items-center gap-2";
-  const active =
-    "bg-red-600 text-white shadow-lg shadow-red-500/30";
+  const active = "bg-red-600 text-white shadow-lg shadow-red-500/30";
   const inactive =
     "text-slate-600 hover:text-red-600 hover:bg-red-50";
 
-  const navItem = (path) => `${base} ${pathname === path ? active : inactive}`;
+  const navItem = (path) =>
+    `${base} ${pathname === path ? active : inactive}`;
 
   return (
     <header className="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg shadow-slate-200/50 z-50 border-b border-slate-100">
@@ -71,11 +71,10 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-1">
             <Link href="/" className={navItem("/")}>
-              <Home className="w-4 h-4" />
-              Home
+              <Home className="w-4 h-4" /> Home
             </Link>
 
             <Link
@@ -83,26 +82,22 @@ export default function Navbar() {
               onClick={(e) => requireLogin(e, "/blood-market")}
               className={navItem("/blood-market")}
             >
-              <Heart className="w-4 h-4" />
-              Blood Market
+              <Heart className="w-4 h-4" /> Blood Market
             </Link>
 
             <Link href="/hospitals" className={navItem("/hospitals")}>
-              <Building2 className="w-4 h-4" />
-              Hospitals
+              <Building2 className="w-4 h-4" /> Hospitals
             </Link>
 
             <Link href="/events" className={navItem("/events")}>
-              <Calendar className="w-4 h-4" />
-              Events
+              <Calendar className="w-4 h-4" /> Events
             </Link>
 
             <Link href="/tips" className={navItem("/tips")}>
-              <Lightbulb className="w-4 h-4" />
-              Tips
+              <Lightbulb className="w-4 h-4" /> Tips
             </Link>
 
-            {/* Profile Dropdown (UNCHANGED UI) */}
+            {/* Desktop Profile Dropdown */}
             {user && (
               <div className="relative ml-4 pl-4 border-l border-slate-200">
                 <button
@@ -123,7 +118,7 @@ export default function Navbar() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50 animate-fade-in">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50">
                     <div className="px-4 py-4 bg-gradient-to-r from-red-500 to-rose-500">
                       <p className="text-sm font-semibold text-white">
                         Signed in as
@@ -136,71 +131,58 @@ export default function Navbar() {
                     <div className="py-2">
                       <Link
                         href="/profile"
-                        onClick={(e) => {
-                          setProfileOpen(false);
-                          requireLogin(e, "/profile");
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        onClick={(e) => requireLogin(e, "/profile")}
+                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-red-50"
                       >
-                        <User className="w-4 h-4" />
-                        Your Profile
+                        <User className="w-4 h-4" /> Your Profile
                       </Link>
 
                       <Link
                         href="/profile/donations"
-                        onClick={(e) => {
-                          setProfileOpen(false);
-                          requireLogin(e, "/profile/donations");
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        onClick={(e) =>
+                          requireLogin(e, "/profile/donations")
+                        }
+                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-red-50"
                       >
-                        <Droplet className="w-4 h-4" />
-                        My Donations
+                        <Droplet className="w-4 h-4" /> My Donations
                       </Link>
 
                       <Link
                         href="/profile/benefits"
-                        onClick={(e) => {
-                          setProfileOpen(false);
-                          requireLogin(e, "/profile/benefits");
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        onClick={(e) =>
+                          requireLogin(e, "/profile/benefits")
+                        }
+                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-red-50"
                       >
-                        <Award className="w-4 h-4" />
-                        My Benefits
+                        <Award className="w-4 h-4" /> My Benefits
                       </Link>
 
                       <Link
                         href="/profile/testimonials"
-                        onClick={(e) => {
-                          setProfileOpen(false);
-                          requireLogin(e, "/profile/testimonials");
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        onClick={(e) =>
+                          requireLogin(e, "/profile/testimonials")
+                        }
+                        className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-red-50"
                       >
-                        <MessageCircle className="w-4 h-4" />
-                        My Testimonials
+                        <MessageCircle className="w-4 h-4" /> My Testimonials
                       </Link>
 
                       {isAdmin && (
                         <Link
                           href="/admin"
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-red-50"
                         >
-                          <Settings className="w-4 h-4" />
-                          Admin Dashboard
+                          <Settings className="w-4 h-4" /> Admin Dashboard
                         </Link>
                       )}
                     </div>
 
-                    <div className="border-t border-slate-100 p-2">
+                    <div className="border-t p-2">
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                        className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl"
                       >
-                        <LogOut className="w-4 h-4" />
-                        Sign out
+                        <LogOut className="w-4 h-4" /> Sign out
                       </button>
                     </div>
                   </div>
@@ -211,20 +193,19 @@ export default function Navbar() {
 
           {/* Mobile Toggle */}
           <button
-            className="md:hidden text-slate-700 hover:bg-red-50 hover:text-red-600 p-2 rounded-xl transition-all duration-300"
+            className="md:hidden p-2 rounded-xl hover:bg-red-50"
             onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
           >
-            {!open ? <Menu className="w-6 h-6" /> : <X className="w-6 h-6" />}
+            {open ? <X /> : <Menu />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Dropdown – logic only */}
+      {/* ✅ Mobile Dropdown (FULL) */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          open ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
-        } bg-white border-t border-slate-100`}
+        className={`md:hidden transition-all duration-300 overflow-hidden ${
+          open ? "max-h-[900px]" : "max-h-0"
+        } bg-white border-t`}
       >
         <div className="px-4 pt-3 pb-6 space-y-2">
           <Link href="/" className={`${navItem("/")} w-full`}>
@@ -239,18 +220,77 @@ export default function Navbar() {
             <Heart className="w-4 h-4" /> Blood Market
           </Link>
 
+          <Link href="/hospitals" className={`${navItem("/hospitals")} w-full`}>
+            <Building2 className="w-4 h-4" /> Hospitals
+          </Link>
+
           <Link href="/events" className={`${navItem("/events")} w-full`}>
             <Calendar className="w-4 h-4" /> Events
           </Link>
+
+          <Link href="/tips" className={`${navItem("/tips")} w-full`}>
+            <Lightbulb className="w-4 h-4" /> Tips
+          </Link>
+
+          {user && (
+            <div className="pt-4 mt-4 border-t space-y-2">
+              <Link
+                href="/profile"
+                onClick={(e) => requireLogin(e, "/profile")}
+                className={`${base} w-full ${inactive}`}
+              >
+                <User className="w-4 h-4" /> Your Profile
+              </Link>
+
+              <Link
+                href="/profile/donations"
+                onClick={(e) =>
+                  requireLogin(e, "/profile/donations")
+                }
+                className={`${base} w-full ${inactive}`}
+              >
+                <Droplet className="w-4 h-4" /> My Donations
+              </Link>
+
+              <Link
+                href="/profile/benefits"
+                onClick={(e) =>
+                  requireLogin(e, "/profile/benefits")
+                }
+                className={`${base} w-full ${inactive}`}
+              >
+                <Award className="w-4 h-4" /> My Benefits
+              </Link>
+
+              <Link
+                href="/profile/testimonials"
+                onClick={(e) =>
+                  requireLogin(e, "/profile/testimonials")
+                }
+                className={`${base} w-full ${inactive}`}
+              >
+                <MessageCircle className="w-4 h-4" /> My Testimonials
+              </Link>
+
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className={`${base} w-full ${inactive}`}
+                >
+                  <Settings className="w-4 h-4" /> Admin Dashboard
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 w-full px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl"
+              >
+                <LogOut className="w-4 h-4" /> Sign out
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      {profileOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setProfileOpen(false)}
-        />
-      )}
     </header>
   );
 }
