@@ -100,7 +100,7 @@ export default function RegisterPage() {
           <div className="space-y-6">
             <div className="flex items-start gap-4">
               <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                <Heart className="w-6 h-6 text-white" />
+                <Heart className="w-6 h-6 text-red-400" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Save Lives</h3>
@@ -110,7 +110,7 @@ export default function RegisterPage() {
 
             <div className="flex items-start gap-4">
               <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                <Shield className="w-6 h-6 text-white" />
+                <Shield className="w-6 h-6 text-red-400" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Safe & Secure</h3>
@@ -120,7 +120,7 @@ export default function RegisterPage() {
 
             <div className="flex items-start gap-4">
               <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                <Users className="w-6 h-6 text-white" />
+                <Users className="w-6 h-6 text-red-400" />
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Join Thousands</h3>
