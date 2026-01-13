@@ -61,3 +61,9 @@ export function updateDonationStatus(id, payload) {
   throw new Error("Invalid donation status");
 }
 
+// 👤 USER — donation eligibility
+
+export async function getDonationEligibility() {
+  const res = await apiFetch("/api/donations/eligibility");
+  return res.data;
+}
