@@ -58,6 +58,7 @@ export function updateDonationStatus(id, payload) {
   throw new Error("Invalid donation status");
 }
 
+<<<<<<< HEAD
 // 🔥 NEW: Register for event (uses cooldown check)
 export async function registerForEvent(eventId) {
   try {
@@ -70,3 +71,11 @@ export async function registerForEvent(eventId) {
     throw err;
   }
 }
+=======
+// 👤 USER — donation eligibility
+
+export async function getDonationEligibility() {
+  const res = await apiFetch("/api/donations/eligibility");
+  return res.data;
+}
+>>>>>>> ddb61ae678a4f5e2aa38b17416a120cc6c73f862
