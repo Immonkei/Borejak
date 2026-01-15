@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
-  
+  Info,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -31,15 +32,33 @@ export default function ProfilePage() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
+  // Calculate days since last donation
+  const daysSinceLastDonation = form?.last_donation_date
+    ? Math.floor((Date.now() - new Date(form.last_donation_date).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  // Calculate if eligible to donate
+  const canDonate = !form?.last_donation_date || daysSinceLastDonation >= 90;
+  const remainingDays = form?.last_donation_date 
+    ? Math.max(0, 90 - daysSinceLastDonation) 
+    : 0;
+
   // =========================
-  // Load profile
+  // Load profile (FIXED: No infinite loop)
   // =========================
   useEffect(() => {
     if (loading) return;
 
+    let isMounted = true; // 🔥 Prevent state updates after unmount
+
     (async () => {
       try {
         const profile = await getMyProfile();
+        
+        if (!isMounted) return; // 🔥 Don't update if component unmounted
+        
+        console.log("✅ Profile loaded:", profile);
+        
         updateUser(profile);
 
         setForm({
@@ -50,14 +69,22 @@ export default function ProfilePage() {
           date_of_birth: profile.date_of_birth ?? "",
           gender: profile.gender ?? "",
           address: profile.address ?? "",
+          last_donation_date: profile.last_donation_date ?? "",
         });
 
         setAvatarPreview(profile.avatar_url || "");
       } catch (err) {
+        if (!isMounted) return; // 🔥 Don't update if component unmounted
+        console.error("❌ Error loading profile:", err);
         setError(err.message);
       }
     })();
-  }, [loading]);
+
+    // 🔥 Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [loading]); // 🔥 ONLY 'loading', NOT 'updateUser'!
 
   // =========================
   // Upload avatar (BACKEND)
@@ -98,14 +125,45 @@ export default function ProfilePage() {
       setError("");
       setSuccess(false);
 
+      // Validate required fields
+      if (!form.full_name || !form.blood_type || !form.date_of_birth) {
+        setError("Full name, blood type, and date of birth are required");
+        setSaving(false);
+        return;
+      }
+
+      // Validate: last_donation_date should not be in the future
+      if (form.last_donation_date) {
+        const lastDonation = new Date(form.last_donation_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        lastDonation.setHours(0, 0, 0, 0);
+        
+        if (lastDonation > today) {
+          setError("Last donation date cannot be in the future");
+          setSaving(false);
+          return;
+        }
+      }
+
       const avatar_url = await uploadAvatarToBackend();
 
       const payload = {
-        ...form,
+        full_name: form.full_name,
+        email: form.email,
+        phone_number: form.phone_number,
+        blood_type: form.blood_type,
+        date_of_birth: form.date_of_birth,
+        gender: form.gender,
+        address: form.address,
+        last_donation_date: form.last_donation_date,
         avatar_url,
       };
 
-      await updateMyProfile(payload);
+      console.log("📤 Sending payload to backend:", payload);
+
+      const response = await updateMyProfile(payload);
+      console.log("✅ Backend response:", response);
 
       updateUser({
         ...user,
@@ -114,16 +172,31 @@ export default function ProfilePage() {
       });
 
       setSuccess(true);
-      setTimeout(() => router.push("/"), 1500);
+      console.log("✅ Profile saved successfully!");
+
+      setTimeout(() => {
+        console.log("🔄 Redirecting to home...");
+        router.push("/");
+      }, 1000);
     } catch (err) {
+      console.error("❌ Error saving profile:", err);
       setError(err.message || "Failed to save profile");
-    } finally {
       setSaving(false);
     }
   }
 
   if (loading || !form) {
-    return <div className="p-6 text-center">Loading profile…</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative inline-block">
+            <div className="w-16 h-16 border-4 border-red-200 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+          </div>
+          <p className="text-slate-600 mt-4 font-medium">Loading profile…</p>
+        </div>
+      </div>
+    );
   }
 
   // =========================
@@ -131,165 +204,256 @@ export default function ProfilePage() {
   // =========================
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 py-12 px-6">
-      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-8">
-
-        {/* Back */}
+      <div className="max-w-3xl mx-auto">
+        
+        {/* Back Button */}
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-2 text-slate-600 hover:text-red-600 mb-6"
+          className="group flex items-center gap-2 text-slate-600 hover:text-red-600 mb-8 transition-all"
         >
-          <ArrowLeft size={18} /> Back
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:bg-red-50 transition-all">
+            <ArrowLeft className="w-5 h-5" />
+          </div>
+          <span className="font-semibold">Back</span>
         </button>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">My Profile</h1>
-          <p className="text-slate-500">Manage your personal information</p>
-        </div>
+        {/* Main Card */}
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8">
 
-        {/* Alerts */}
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl flex items-center gap-2">
-            <AlertCircle size={18} /> {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 p-3 rounded-xl flex items-center gap-2">
-            <CheckCircle size={18} /> Profile updated successfully
-          </div>
-        )}
-
-        {/* Avatar */}
-        <div className=" flex flex-col items-center ml-7 gap-6 mb-8 ">
-          <img
-            src={
-              avatarPreview ||
-              user?.avatar_url ||
-              "/avatars/default-avatar.png"
-            }
-            alt="Avatar"
-            className="w-28 h-28 rounded-full object-cover border-4 border-red-200"
-          />
-
-          <label className="cursor-pointer ">
-            <input
-              type="file"
-              hidden
-              accept="image/png,image/jpeg,image/webp"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setAvatarFile(file);
-                setAvatarPreview(URL.createObjectURL(file));
-              }}
-            />
-            <span className="px-4 py-1.5  bg-red-600 text-white rounded-xl  hover:bg-red-700 transition ">
-              Change Avatar
-            </span>
-          </label>
-        </div>
-
-        {/* Form */}
-        <div className="space-y-5">
-
-          {/* Full Name */}
-          <Field icon={User} label="Full Name *">
-            <input
-              className="input"
-              value={form.full_name}
-              onChange={(e) =>
-                setForm({ ...form, full_name: e.target.value })
-              }
-            />
-          </Field>
-
-          {/* Email */}
-          <Field icon={Mail} label="Email">
-            <input className="input bg-gray-100" value={form.email} disabled />
-          </Field>
-
-          {/* Phone */}
-          <Field icon={Phone} label="Phone Number">
-            <input
-              className="input"
-              value={form.phone_number}
-              onChange={(e) =>
-                setForm({ ...form, phone_number: e.target.value })
-              }
-            />
-          </Field>
-
-          {/* Blood Type */}
-          <Field icon={Droplet} label="Blood Type *">
-            <select
-              className="input"
-              value={form.blood_type}
-              onChange={(e) =>
-                setForm({ ...form, blood_type: e.target.value })
-              }
-            >
-              <option value="">Select blood type</option>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-          </Field>
-
-          {/* DOB */}
-          <Field icon={Calendar} label="Date of Birth *">
-            <input
-              type="date"
-              className="input"
-              value={form.date_of_birth}
-              onChange={(e) =>
-                setForm({ ...form, date_of_birth: e.target.value })
-              }
-            />
-          </Field>
-
-          {/* Gender */}
-          <Field icon={Users} label="Gender *">
-            <div className="grid grid-cols-3 gap-3">
-              {["male", "female", "other"].map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setForm({ ...form, gender: g })}
-                  className={`py-2 rounded-xl font-medium ${
-                    form.gender === g
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  {g.charAt(0).toUpperCase() + g.slice(1)}
-                </button>
-              ))}
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-rose-600 rounded-full shadow-lg shadow-red-500/30 mb-4">
+              <User className="w-8 h-8 text-white" />
             </div>
-          </Field>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">My Profile</h1>
+            <p className="text-slate-600">Manage your personal information</p>
+          </div>
 
-          {/* Address */}
-          <Field icon={MapPin} label="Address">
-            <textarea
-              className="input"
-              rows={3}
-              value={form.address}
-              onChange={(e) =>
-                setForm({ ...form, address: e.target.value })
+          {/* Alerts */}
+          {error && (
+            <div className="mb-6 bg-red-50 border-2 border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3">
+              <AlertCircle size={20} className="flex-shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 bg-green-50 border-2 border-green-200 text-green-700 p-4 rounded-xl flex items-center gap-3">
+              <CheckCircle size={20} className="flex-shrink-0" />
+              <span className="font-medium">Profile updated successfully! Redirecting...</span>
+            </div>
+          )}
+
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center gap-6 mb-10 pb-10 border-b border-slate-200">
+            <img
+              src={
+                avatarPreview ||
+                user?.avatar_url ||
+                "/avatars/default-avatar.png"
               }
+              alt="Avatar"
+              className="w-24 h-24 rounded-full object-cover border-4 border-red-200 shadow-lg"
             />
-          </Field>
+
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                hidden
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setAvatarFile(file);
+                  setAvatarPreview(URL.createObjectURL(file));
+                }}
+              />
+              <span className="inline-flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition shadow-lg">
+                Change Avatar
+              </span>
+            </label>
+          </div>
+
+          {/* Form */}
+          <div className="space-y-6 mb-10">
+
+            {/* Full Name */}
+            <Field icon={User} label="Full Name *">
+              <input
+                className="input"
+                placeholder="Enter your full name"
+                value={form.full_name}
+                onChange={(e) =>
+                  setForm({ ...form, full_name: e.target.value })
+                }
+              />
+            </Field>
+
+            {/* Email (Read-only) */}
+            <Field icon={Mail} label="Email">
+              <input 
+                className="input bg-slate-100 cursor-not-allowed" 
+                value={form.email} 
+                disabled 
+                placeholder="Email from registration"
+              />
+              <p className="text-xs text-slate-500 mt-1">ℹ️ Email cannot be changed</p>
+            </Field>
+
+            {/* Phone */}
+            <Field icon={Phone} label="Phone Number">
+              <input
+                className="input"
+                placeholder="Enter your phone number"
+                value={form.phone_number}
+                onChange={(e) =>
+                  setForm({ ...form, phone_number: e.target.value })
+                }
+              />
+            </Field>
+
+            {/* Blood Type */}
+            <Field icon={Droplet} label="Blood Type *">
+              <select
+                className="input"
+                value={form.blood_type}
+                onChange={(e) =>
+                  setForm({ ...form, blood_type: e.target.value })
+                }
+              >
+                <option value="">Select blood type</option>
+                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </Field>
+
+            {/* Date of Birth */}
+            <Field icon={Calendar} label="Date of Birth *">
+              <input
+                type="date"
+                className="input"
+                value={form.date_of_birth}
+                onChange={(e) =>
+                  setForm({ ...form, date_of_birth: e.target.value })
+                }
+              />
+            </Field>
+
+            {/* Gender */}
+            <Field icon={Users} label="Gender">
+              <div className="grid grid-cols-3 gap-3">
+                {["male", "female", "other"].map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setForm({ ...form, gender: g })}
+                    className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                      form.gender === g
+                        ? "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-lg"
+                        : "bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-600"
+                    }`}
+                  >
+                    {g.charAt(0).toUpperCase() + g.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            {/* Address */}
+            <Field icon={MapPin} label="Address">
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Enter your address (optional)"
+                value={form.address}
+                onChange={(e) =>
+                  setForm({ ...form, address: e.target.value })
+                }
+              />
+            </Field>
+
+            {/* Last Donation Date */}
+            <div className="border-t-2 border-slate-200 pt-6">
+              <Field icon={Calendar} label="Last Donation Date (Optional)">
+                <input
+                  type="date"
+                  className="input"
+                  value={form.last_donation_date}
+                  onChange={(e) => {
+                    console.log("📅 Last donation date changed to:", e.target.value);
+                    setForm({ ...form, last_donation_date: e.target.value });
+                  }}
+                  max={new Date().toISOString().split('T')[0]}
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  ℹ️ If you've donated before, enter when you last donated. This helps calculate your 90-day cooldown period.
+                </p>
+
+                {/* Show Cooldown Status */}
+                {form.last_donation_date && (
+                  <div className={`mt-4 p-4 rounded-xl border-2 ${
+                    canDonate 
+                      ? "bg-green-50 border-green-200" 
+                      : "bg-orange-50 border-orange-200"
+                  }`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      {canDonate ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Clock className="w-5 h-5 text-orange-600" />
+                      )}
+                      <span className={`font-semibold ${
+                        canDonate 
+                          ? "text-green-800" 
+                          : "text-orange-800"
+                      }`}>
+                        {canDonate ? "✓ You can donate" : `Recovery Period: ${remainingDays} days remaining`}
+                      </span>
+                    </div>
+                    {!canDonate && (
+                      <p className="text-sm text-orange-700 ml-8">
+                        Next eligible date: {new Date(new Date(form.last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </Field>
+            </div>
+
+          </div>
+
+          {/* Save Button */}
+          <button
+            onClick={saveProfile}
+            disabled={saving}
+            className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 disabled:from-slate-300 disabled:to-slate-400 text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                Save Profile
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Save */}
-        <button
-          onClick={saveProfile}
-          disabled={saving}
-          className="w-full mt-8 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
-        >
-          <Save size={18} />
-          {saving ? "Saving..." : "Save Profile"}
-        </button>
+        {/* Info Banner */}
+        <div className="mt-6 bg-blue-50 border-l-4 border-blue-600 rounded-xl p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-blue-900 mb-1">90-Day Donation Cooldown</p>
+            <p className="text-sm text-blue-800">
+              After each donation, your body needs 90 days to recover before you can donate again. 
+              This is a medical safety requirement. The system will prevent registration during this period.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Tailwind helper */}
@@ -300,6 +464,17 @@ export default function ProfilePage() {
           border-radius: 0.75rem;
           border: 1px solid #cbd5e1;
           outline: none;
+          font-size: 1rem;
+          transition: all 0.2s;
+        }
+
+        .input:focus {
+          border-color: #dc2626;
+          box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .input:disabled {
+          cursor: not-allowed;
         }
       `}</style>
     </div>
@@ -312,8 +487,8 @@ export default function ProfilePage() {
 function Field({ icon: Icon, label, children }) {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-1 flex items-center gap-2">
-        <Icon size={16} className="text-red-600" />
+      <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+        <Icon size={18} className="text-red-600" />
         {label}
       </label>
       {children}

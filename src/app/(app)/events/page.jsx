@@ -12,6 +12,8 @@ import {
   Hourglass,
 } from "lucide-react";
 import { getEvents, registerForEvent } from "@/services/events";
+import { DonationCooldownAlert } from "@/components/DonationCooldownAlert";
+import { useDonationCooldown } from "@/hooks/useDonationCooldown";
 import { useRouter } from "next/navigation";
 
 export default function EventsPage() {
@@ -19,8 +21,10 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [loadingId, setLoadingId] = useState(null);
+  const [error, setError] = useState("");
 
   const router = useRouter();
+  const { canDonate, remainingDays, lastDonationDate, nextEligibleDate } = useDonationCooldown();
 
   useEffect(() => {
     loadEvents();
@@ -28,19 +32,35 @@ export default function EventsPage() {
 
   async function loadEvents() {
     setLoading(true);
-    const data = await getEvents();
-    setEvents(data);
-    setLoading(false);
+    try {
+      const data = await getEvents();
+      setEvents(data);
+    } catch (err) {
+      setError(err.message || "Failed to load events");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function register(id) {
+    // 🔥 Check cooldown before allowing registration
+    if (!canDonate) {
+      setError(`You can donate in ${remainingDays} days. Recovery period in progress.`);
+      return;
+    }
+
     try {
       setLoadingId(id);
+      setError("");
       await registerForEvent(id);
       alert("Registration submitted! Waiting for admin approval.");
-      await loadEvents(); // Reload to get updated status
+      await loadEvents();
     } catch (err) {
-      alert(err.message || "Registration failed");
+      if (err.message?.includes("90 days")) {
+        setError(err.message);
+      } else {
+        alert(err.message || "Registration failed");
+      }
     } finally {
       setLoadingId(null);
     }
@@ -105,10 +125,22 @@ export default function EventsPage() {
           </button>
         );
       }
-      // Default registered state
       return (
         <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-100 text-slate-600">
           Already Registered
+        </button>
+      );
+    }
+
+    // 🔥 CHECK COOLDOWN
+    if (!canDonate) {
+      return (
+        <button
+          disabled
+          title={`Recovery period: ${remainingDays} days remaining`}
+          className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-200 text-slate-500 cursor-not-allowed"
+        >
+          Recovery Period Active ({remainingDays}d)
         </button>
       );
     }
@@ -183,9 +215,25 @@ export default function EventsPage() {
             Join us in saving lives. Find upcoming blood donation drives near you.
           </p>
         </div>
-      </div> 
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* 🔥 Cooldown Alert */}
+        {!canDonate && (
+          <DonationCooldownAlert
+            remainingDays={remainingDays}
+            nextEligibleDate={nextEligibleDate}
+            lastDonationDate={lastDonationDate}
+          />
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-6">
+            {error}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-8">
           {["all", "upcoming", "ongoing", "completed"].map((f) => (

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { User, Droplet, Calendar, Users, MapPin, Phone, ArrowRight, Heart } from "lucide-react";
+import { User, Droplet, Calendar, Users, MapPin, Phone, ArrowRight, Heart, Info } from "lucide-react";
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -17,12 +17,13 @@ export default function CompleteProfile() {
     date_of_birth: "",
     gender: "",
     address: "",
+    last_donation_date: "", // 🔥 NEW: Allow user to input last donation date
   });
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔒 BLOCK invalid access
+  // 🔐 BLOCK invalid access
   useEffect(() => {
     if (loading) return;
 
@@ -50,6 +51,15 @@ export default function CompleteProfile() {
       return setError("Full name, blood type, and date of birth are required");
     }
 
+    // Validate: last_donation_date should not be in the future
+    if (form.last_donation_date) {
+      const lastDonation = new Date(form.last_donation_date);
+      const today = new Date();
+      if (lastDonation > today) {
+        return setError("Last donation date cannot be in the future");
+      }
+    }
+
     setSubmitting(true);
 
     try {
@@ -61,6 +71,7 @@ export default function CompleteProfile() {
       updateUser({
         ...res.user,
         profile_completed: true,
+        last_donation_date: form.last_donation_date || null, // 🔥 Use user input or NULL if never donated
       });
 
       router.replace("/profile");
@@ -106,6 +117,17 @@ export default function CompleteProfile() {
                 {error}
               </div>
             )}
+
+            {/* 🔥 Info: Donation history affects cooldown */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-800 mb-1">About Donation History</p>
+                <p className="text-xs text-blue-700">
+                  If you've donated blood before, tell us when you last donated. This helps us calculate when you can donate again (90 days after your last donation). Leave blank if you've never donated.
+                </p>
+              </div>
+            </div>
 
             {/* Full Name */}
             <div>
@@ -199,6 +221,35 @@ export default function CompleteProfile() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* 🔥 NEW: Last Donation Date (Optional) */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-slate-500" />
+                Last Donation Date (Optional)
+              </label>
+              <p className="text-xs text-slate-500 mb-2">
+                If you've donated before, enter the date. Leave blank if this is your first time.
+              </p>
+              <input
+                type="date"
+                name="last_donation_date"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                value={form.last_donation_date}
+                onChange={updateField}
+              />
+              {form.last_donation_date && (
+                <p className="text-xs text-green-600 mt-2">
+                  ✓ You can donate again after: {
+                    new Date(new Date(form.last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  }
+                </p>
+              )}
             </div>
 
             {/* Address */}
