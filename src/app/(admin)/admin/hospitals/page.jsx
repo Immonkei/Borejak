@@ -1,12 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Building2, X, Mail, Phone, MapPin, FileText, Image, Edit } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Building2,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Image,
+  Edit,
+} from "lucide-react";
 import {
   getHospitals,
   createHospital,
   deleteHospital,
   updateHospital,
+  uploadHospitalImage,
 } from "@/services/hospitals";
 
 export default function AdminHospitalsPage() {
@@ -15,6 +27,7 @@ export default function AdminHospitalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const [editingHospital, setEditingHospital] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -56,30 +69,48 @@ export default function AdminHospitalsPage() {
     }
   }
 
-  async function saveHospital() {
-    if (!formData.name.trim()) return;
-    setSubmitting(true);
-    try {
-      if (editingHospital) {
-        await updateHospital(editingHospital.id, formData);
-      } else {
-        await createHospital(formData);
-      }
-      setFormData({
-        name: "",
-        address: "",
-        phone: "",
-        email: "",
-        description: "",
-        image_url: "",
-      });
-      setShowModal(false);
-      setEditingHospital(null);
-      await load();
-    } finally {
-      setSubmitting(false);
+ async function saveHospital() {
+  if (!formData.name.trim()) return;
+  setSubmitting(true);
+
+  try {
+    let imageUrl = formData.image_url || null;
+
+    // ✅ upload image if selected
+    if (imageFile) {
+      imageUrl = await uploadHospitalImage(imageFile);
     }
+
+    const payload = {
+      ...formData,
+      image_url: imageUrl,
+    };
+
+    if (editingHospital) {
+      await updateHospital(editingHospital.id, payload);
+    } else {
+      await createHospital(payload);
+    }
+
+    // reset
+    setImageFile(null);
+    setFormData({
+      name: "",
+      address: "",
+      phone: "",
+      email: "",
+      description: "",
+      image_url: "",
+    });
+
+    setShowModal(false);
+    setEditingHospital(null);
+    await load();
+  } finally {
+    setSubmitting(false);
   }
+}
+
 
   function openEditModal(hospital) {
     setEditingHospital(hospital);
@@ -96,6 +127,7 @@ export default function AdminHospitalsPage() {
 
   function openAddModal() {
     setEditingHospital(null);
+    setImageFile(null); 
     setFormData({
       name: "",
       address: "",
@@ -132,7 +164,7 @@ export default function AdminHospitalsPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (loading) {
@@ -156,7 +188,9 @@ export default function AdminHospitalsPage() {
               <Building2 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800">Hospital Management</h1>
+              <h1 className="text-3xl font-bold text-slate-800">
+                Hospital Management
+              </h1>
               <p className="text-slate-600 text-sm mt-1">
                 Manage your healthcare facilities
               </p>
@@ -175,8 +209,12 @@ export default function AdminHospitalsPage() {
         {hospitals.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-16 text-center">
             <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 text-lg font-medium">No hospitals yet</p>
-            <p className="text-slate-400 text-sm mt-1">Add your first hospital to get started</p>
+            <p className="text-slate-500 text-lg font-medium">
+              No hospitals yet
+            </p>
+            <p className="text-slate-400 text-sm mt-1">
+              Add your first hospital to get started
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -235,11 +273,13 @@ export default function AdminHospitalsPage() {
 
                   {/* Status Badge */}
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      hospital.is_active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        hospital.is_active
+                          ? "bg-green-100 text-green-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
                       {hospital.is_active ? "Active" : "Inactive"}
                     </span>
                     <div className="flex gap-2">
@@ -350,15 +390,25 @@ export default function AdminHospitalsPage() {
                 {/* Image URL */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Image URL
+                    Hospital Image
                   </label>
+
+                  {formData.image_url && (
+                    <img
+                      src={formData.image_url}
+                      className="h-40 w-full object-cover rounded-xl mb-3"
+                    />
+                  )}
+
                   <input
-                    type="url"
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
-                    placeholder="e.g., https://example.com/hospital.jpg"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      setImageFile(file);
+                    }}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white"
                   />
                 </div>
 
@@ -398,7 +448,11 @@ export default function AdminHospitalsPage() {
                     </>
                   ) : (
                     <>
-                      {editingHospital ? <Edit className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      {editingHospital ? (
+                        <Edit className="w-5 h-5" />
+                      ) : (
+                        <Plus className="w-5 h-5" />
+                      )}
                       {editingHospital ? "Update Hospital" : "Add Hospital"}
                     </>
                   )}

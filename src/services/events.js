@@ -43,3 +43,16 @@ export function deleteEvent(id) {
     method: "DELETE",
   });
 }
+
+export async function uploadEventImage(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await apiFetch("/api/events/upload-image", {
+    method: "POST",
+    body: formData,
+    isFormData: true,
+  });
+
+  return res.data.url;
+}

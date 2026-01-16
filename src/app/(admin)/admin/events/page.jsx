@@ -7,6 +7,7 @@ import {
   createEvent,
   deleteEvent,
   updateEvent,
+  uploadEventImage,
 } from "@/services/events";
 import { getHospitals } from "@/services/hospitals";
 
@@ -18,6 +19,9 @@ export default function AdminEventsPage() {
   const [deletingId, setDeletingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -49,12 +53,24 @@ export default function AdminEventsPage() {
     setEvents(data);
   }
 
+
+
+
+
   async function saveEvent() {
     if (!formData.title.trim()) return;
     setSubmitting(true);
     try {
+       let imageUrl = formData.image_url || null;
+
+    // ✅ upload image if selected
+     if (imageFile) {
+      imageUrl = await uploadEventImage(imageFile);
+    }
       const payload = {
         ...formData,
+        image_url: imageUrl, // ✅ THIS WAS MISSING
+        event_date: formData.event_date || null,
         max_participants: formData.max_participants ? parseInt(formData.max_participants) : null,
         hospital_id: formData.hospital_id || null,
       };
@@ -66,6 +82,8 @@ export default function AdminEventsPage() {
       }
       closeModal();
       await load();
+      setImageFile(null);      
+      setImagePreview(""); 
     } finally {
       setSubmitting(false);
     }
@@ -83,10 +101,14 @@ export default function AdminEventsPage() {
 
   function openEditModal(event) {
     setEditingEvent(event);
+    setImageFile(null);                      // ✅ RESET
+  setImagePreview(event.image_url || ""); 
     setFormData({
       title: event.title || "",
       description: event.description || "",
-      event_date: event.event_date ? event.event_date.split('T')[0] : "",
+      event_date: event.event_date
+  ? new Date(event.event_date).toISOString().slice(0, 16)
+  : "",
       location: event.location || "",
       hospital_id: event.hospital_id || "",
       max_participants: event.max_participants || "",
@@ -98,6 +120,8 @@ export default function AdminEventsPage() {
 
   function openAddModal() {
     setEditingEvent(null);
+    setImageFile(null);          // ✅ RESET
+  setImagePreview("");  
     setFormData({
       title: "",
       description: "",
@@ -114,6 +138,8 @@ export default function AdminEventsPage() {
   function closeModal() {
     setShowModal(false);
     setEditingEvent(null);
+    setImageFile(null);     // ✅ RESET
+    setImagePreview(""); 
     setFormData({
       title: "",
       description: "",
@@ -415,14 +441,32 @@ export default function AdminEventsPage() {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Image URL
                   </label>
-                  <input
-                    type="url"
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
-                    placeholder="e.g., https://example.com/event.jpg"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  />
+                 {/* Event Image */}
+<div>
+  <label className="block text-sm font-semibold text-slate-700 mb-2">
+    Event Image
+  </label>
+
+  {imagePreview && (
+    <img
+      src={imagePreview}
+      className="h-40 w-full object-cover rounded-xl mb-3"
+    />
+  )}
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }}
+    className="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white"
+  />
+</div>
+
                 </div>
 
                 {/* Description */}

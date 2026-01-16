@@ -15,14 +15,17 @@ import {
   Heart,
   Share2,
   Droplets,
+  AlertCircle,
 } from "lucide-react";
 import { getEventById, registerForEvent } from "@/services/events";
 import { useAuth } from "@/context/AuthContext";
+import { useDonationCooldown } from "@/hooks/useDonationCooldown"; // 🔧 ADD cooldown hook
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { canDonate, remainingDays, nextEligibleDate } = useDonationCooldown(); // 🔧 ADD cooldown
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,12 @@ export default function EventDetailPage() {
     if (!user?.profile_completed) {
       alert("Please complete your profile before registering.");
       router.push("/profile");
+      return;
+    }
+
+    // 🔧 CHECK COOLDOWN before registration
+    if (!canDonate) {
+      alert(`You must wait ${remainingDays} more days before your next donation. Recovery period in progress.`);
       return;
     }
 
@@ -99,6 +108,19 @@ export default function EventDetailPage() {
       return (
         <button disabled className="w-full py-4 rounded-2xl font-bold bg-slate-100 text-slate-500 text-lg border-2 border-slate-200">
           Already Registered
+        </button>
+      );
+    }
+
+    // 🔧 CHECK COOLDOWN PERIOD
+    if (!canDonate) {
+      return (
+        <button
+          disabled
+          title={`Recovery period: ${remainingDays} days remaining`}
+          className="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-slate-200 to-slate-300 text-slate-600 text-lg border-2 border-slate-300 cursor-not-allowed"
+        >
+          Recovery Period Active ({remainingDays}d)
         </button>
       );
     }
@@ -189,6 +211,21 @@ export default function EventDetailPage() {
             <div>
               <p className="font-semibold text-slate-800">Registration Submitted!</p>
               <p className="text-sm text-slate-500">Waiting for admin approval</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔧 Cooldown Alert */}
+      {!canDonate && (
+        <div className="bg-amber-50 border-b-2 border-amber-200 py-4 px-6">
+          <div className="max-w-5xl mx-auto flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-900">Recovery Period Active</p>
+              <p className="text-amber-700 text-sm">
+                You can donate again in <strong>{remainingDays} days</strong> ({nextEligibleDate?.toLocaleDateString()})
+              </p>
             </div>
           </div>
         </div>
@@ -434,7 +471,7 @@ export default function EventDetailPage() {
                       <CheckCircle className="w-6 h-6 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="font-bold text-emerald-800 text-lg"> You're In! 🎉</p>
+                      <p className="font-bold text-emerald-800 text-lg">✅ You're In! 🎉</p>
                       <p className="text-emerald-600 mt-1">
                         Your registration has been approved. See you at the event!
                       </p>

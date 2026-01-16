@@ -19,6 +19,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getMyProfile, updateMyProfile } from "@/services/profile";
+import { useDonationCooldown } from "@/hooks/useDonationCooldown";
+
 
 export default function ProfilePage() {
   const { loading, user, updateUser } = useAuth();
@@ -32,16 +34,15 @@ export default function ProfilePage() {
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
-  // Calculate days since last donation
-  const daysSinceLastDonation = form?.last_donation_date
-    ? Math.floor((Date.now() - new Date(form.last_donation_date).getTime()) / (1000 * 60 * 60 * 24))
-    : null;
+ const {
+  canDonate,
+  remainingDays,
+  lastDonationDate,
+  nextEligibleDate,
+  loading: cooldownLoading,
+} = useDonationCooldown();
 
-  // Calculate if eligible to donate
-  const canDonate = !form?.last_donation_date || daysSinceLastDonation >= 90;
-  const remainingDays = form?.last_donation_date 
-    ? Math.max(0, 90 - daysSinceLastDonation) 
-    : 0;
+
 
   // =========================
   // Load profile (FIXED: No infinite loop)
@@ -372,56 +373,55 @@ export default function ProfilePage() {
                 }
               />
             </Field>
-
-            {/* Last Donation Date */}
-            <div className="border-t-2 border-slate-200 pt-6">
-              <Field icon={Calendar} label="Last Donation Date (Optional)">
-                <input
-                  type="date"
-                  className="input"
-                  value={form.last_donation_date}
-                  onChange={(e) => {
-                    console.log("📅 Last donation date changed to:", e.target.value);
-                    setForm({ ...form, last_donation_date: e.target.value });
-                  }}
-                  max={new Date().toISOString().split('T')[0]}
-                />
-                <p className="text-xs text-slate-500 mt-2">
-                  ℹ️ If you've donated before, enter when you last donated. This helps calculate your 90-day cooldown period.
-                </p>
-
-                {/* Show Cooldown Status */}
-                {form.last_donation_date && (
-                  <div className={`mt-4 p-4 rounded-xl border-2 ${
-                    canDonate 
-                      ? "bg-green-50 border-green-200" 
-                      : "bg-orange-50 border-orange-200"
-                  }`}>
-                    <div className="flex items-center gap-3 mb-2">
-                      {canDonate ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-orange-600" />
-                      )}
-                      <span className={`font-semibold ${
-                        canDonate 
-                          ? "text-green-800" 
-                          : "text-orange-800"
-                      }`}>
-                        {canDonate ? "✓ You can donate" : `Recovery Period: ${remainingDays} days remaining`}
-                      </span>
-                    </div>
-                    {!canDonate && (
-                      <p className="text-sm text-orange-700 ml-8">
-                        Next eligible date: {new Date(new Date(form.last_donation_date).getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </Field>
-            </div>
-
           </div>
+
+
+          {/* 🩸 Donation Cooldown Status */}
+<div className="mb-8 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+  <div className="flex items-center gap-2 mb-3">
+    <Clock className="w-5 h-5 text-red-600" />
+    <h3 className="font-bold text-slate-800">Donation Eligibility</h3>
+  </div>
+
+  {cooldownLoading ? (
+    <p className="text-slate-500 text-sm">Checking donation eligibility…</p>
+  ) : canDonate ? (
+    <div className="flex items-start gap-3 bg-green-50 text-green-700 p-4 rounded-xl">
+      <CheckCircle className="w-5 h-5 mt-0.5" />
+      <div>
+        <p className="font-semibold">You are eligible to donate</p>
+        <p className="text-sm">
+          You can register for blood donation events.
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800">
+      <p className="font-semibold mb-2">
+        ⏳ Recovery period in progress
+      </p>
+
+      <ul className="text-sm space-y-1">
+        {lastDonationDate && (
+          <li>
+            <strong>Last donation:</strong>{" "}
+            {lastDonationDate.toLocaleDateString()}
+          </li>
+        )}
+        <li>
+          <strong>Remaining days:</strong> {remainingDays} days
+        </li>
+        {nextEligibleDate && (
+          <li>
+            <strong>Next eligible date:</strong>{" "}
+            {nextEligibleDate.toLocaleDateString()}
+          </li>
+        )}
+      </ul>
+    </div>
+  )}
+</div>
+
 
           {/* Save Button */}
           <button

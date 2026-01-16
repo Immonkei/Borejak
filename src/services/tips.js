@@ -26,3 +26,16 @@ export function deleteTip(id) {
     method: "DELETE",
   });
 }
+
+export async function uploadTipImage(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+  const res = await apiFetch("/api/tips/upload-image", {
+    method: "POST",
+    body: formData,
+    isFormData: true,
+  });
+  return res.data.url;
+}
+
+

@@ -29,3 +29,18 @@ export function deleteHospital(id) {
     method: "DELETE",
   });
 }
+
+
+// 🖼️ Upload hospital image
+export async function uploadHospitalImage(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await apiFetch("/api/hospitals/upload-image", {
+    method: "POST",
+    body: formData,
+    isFormData: true,
+  });
+
+  return res.data.url;
+}

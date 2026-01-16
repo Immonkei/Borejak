@@ -1,18 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, Plus, ToggleLeft, ToggleRight, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { uploadTipImage } from "@/services/tips";
 import {
-  getTips,
-  createTip,
-  deleteTip,
-  updateTip,
-} from "@/services/tips";
+  Trash2,
+  Plus,
+  ToggleLeft,
+  ToggleRight,
+  AlertCircle,
+  Image as ImageIcon,
+} from "lucide-react";
+import { getTips, createTip, deleteTip, updateTip } from "@/services/tips";
 
 export default function AdminTipsPage() {
   const [tips, setTips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [editingTip, setEditingTip] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+
   const [form, setForm] = useState({
     title: "",
     content: "",
@@ -42,32 +50,71 @@ export default function AdminTipsPage() {
 
   function updateField(e) {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "number" ? parseInt(value) || 0 : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "number"
+          ? parseInt(value) || 0
+          : value,
     }));
   }
 
-  async function addTip() {
+  function openEditTip(tip) {
+    setEditingTip(tip);
+    setForm({
+      title: tip.title || "",
+      content: tip.content || "",
+      category: tip.category || "",
+      image_url: tip.image_url || "",
+      order: tip.order || 0,
+      is_published: tip.is_published ?? true,
+    });
+    setImageFile(null);
+  }
+
+  async function saveTip() {
     if (!form.title.trim() || !form.content.trim()) {
       setError("Title and content are required");
       return;
     }
-    
+
     setError("");
+
     try {
-      await createTip(form);
-      setForm({ 
-        title: "", 
-        content: "", 
+      let imageUrl = form.image_url || null;
+
+      if (imageFile) {
+        imageUrl = await uploadTipImage(imageFile);
+      }
+
+      const payload = {
+        ...form,
+        image_url: imageUrl,
+      };
+
+      if (editingTip) {
+        await updateTip(editingTip.id, payload);
+      } else {
+        await createTip(payload);
+      }
+
+      // reset
+      setForm({
+        title: "",
+        content: "",
         category: "",
         image_url: "",
         order: 0,
-        is_published: true 
+        is_published: true,
       });
+
+      setEditingTip(null);
+      setImageFile(null);
       load();
     } catch (err) {
-      setError("Failed to create tip. Please try again.");
+      setError("Failed to save tip.");
       console.error(err);
     }
   }
@@ -84,18 +131,15 @@ export default function AdminTipsPage() {
       console.error(err);
     }
   }
-
-  async function remove(id) {
-    if (!confirm("Are you sure you want to delete this tip?")) return;
-    
-    try {
-      await deleteTip(id);
-      load();
-    } catch (err) {
-      setError("Failed to delete tip.");
-      console.error(err);
-    }
+async function remove(id) {
+  setDeletingId(id);
+  try {
+    await deleteTip(id);
+    setTips((prev) => prev.filter((t) => t.id !== id));
+  } finally {
+    setDeletingId(null);
   }
+}
 
   if (loading) {
     return (
@@ -113,8 +157,12 @@ export default function AdminTipsPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Donation Tips Management</h1>
-          <p className="text-gray-600">Create and manage donation tips for your users</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Donation Tips Management
+          </h1>
+          <p className="text-gray-600">
+            Create and manage donation tips for your users
+          </p>
         </div>
 
         {/* Error Alert */}
@@ -131,9 +179,10 @@ export default function AdminTipsPage() {
         {/* Add New Tip Form */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Add New Tip
-          </h2>
+  <Plus className="w-5 h-5" />
+  {editingTip ? "Edit Tip" : "Add New Tip"}
+</h2>
+
 
           <div className="space-y-4">
             <div>
@@ -199,23 +248,25 @@ export default function AdminTipsPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL
+                Tip Image
               </label>
               <div className="flex gap-2">
                 <input
-                  name="image_url"
-                  placeholder="https://example.com/image.jpg"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
-                  value={form.image_url}
-                  onChange={updateField}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files[0])}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white"
                 />
                 {form.image_url && (
                   <div className="w-10 h-10 border border-gray-300 rounded-lg overflow-hidden flex-shrink-0">
-                    <img 
-                      src={form.image_url} 
-                      alt="Preview" 
+                    <img
+                      src={form.image_url}
+                      alt="Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E"}
+                      onError={(e) =>
+                        (e.target.src =
+                          "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E")
+                      }
                     />
                   </div>
                 )}
@@ -239,11 +290,20 @@ export default function AdminTipsPage() {
             </div>
 
             <button
-              onClick={addTip}
+              onClick={saveTip}
               className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2.5 rounded-lg transition flex items-center gap-2"
             >
-              <Plus className="w-4 h-4" />
-              Add Tip
+              {editingTip ? (
+                <>
+                  <ToggleRight className="w-4 h-4" />
+                  Update Tip
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Add Tip
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -262,7 +322,9 @@ export default function AdminTipsPage() {
                 <AlertCircle className="w-12 h-12 mx-auto" />
               </div>
               <p className="text-gray-600 font-medium">No tips yet</p>
-              <p className="text-gray-500 text-sm">Create your first tip to get started</p>
+              <p className="text-gray-500 text-sm">
+                Create your first tip to get started
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -290,26 +352,36 @@ export default function AdminTipsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {tips.map(tip => (
+                  {tips.map((tip) => (
                     <tr key={tip.id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{tip.order}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {tip.order}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{tip.title}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {tip.title}
+                        </div>
                         <div className="text-sm text-gray-500 max-w-md truncate mt-1">
                           {tip.content}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {tip.category ? (
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            tip.category === 'before' ? 'bg-purple-100 text-purple-800' :
-                            tip.category === 'during' ? 'bg-orange-100 text-orange-800' :
-                            tip.category === 'after' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {tip.category.charAt(0).toUpperCase() + tip.category.slice(1)}
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              tip.category === "before"
+                                ? "bg-purple-100 text-purple-800"
+                                : tip.category === "during"
+                                ? "bg-orange-100 text-orange-800"
+                                : tip.category === "after"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {tip.category.charAt(0).toUpperCase() +
+                              tip.category.slice(1)}
                           </span>
                         ) : (
                           <span className="text-gray-400 text-sm">—</span>
@@ -318,11 +390,14 @@ export default function AdminTipsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {tip.image_url ? (
                           <div className="w-10 h-10 border border-gray-200 rounded-lg overflow-hidden">
-                            <img 
-                              src={tip.image_url} 
+                            <img
+                              src={tip.image_url}
                               alt={tip.title}
                               className="w-full h-full object-cover"
-                              onError={(e) => e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E"}
+                              onError={(e) =>
+                                (e.target.src =
+                                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23e5e7eb' width='40' height='40'/%3E%3C/svg%3E")
+                              }
                             />
                           </div>
                         ) : (
@@ -332,16 +407,26 @@ export default function AdminTipsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          tip.is_published 
-                            ? "bg-green-100 text-green-800" 
-                            : "bg-gray-100 text-gray-800"
-                        }`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            tip.is_published
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {tip.is_published ? "Published" : "Draft"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
+                          {/* EDIT */}
+                          <button
+                            onClick={() => openEditTip(tip)}
+                            className="text-indigo-600 hover:text-indigo-800"
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
                           <button
                             onClick={() => togglePublished(tip)}
                             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition"
@@ -354,6 +439,7 @@ export default function AdminTipsPage() {
                             )}
                           </button>
                           <button
+                            type="button"
                             onClick={() => remove(tip.id)}
                             className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 transition"
                             title="Delete"

@@ -106,7 +106,27 @@ export default function BenefitsPage() {
     : null;
 
   // Generate professional PDF certificate
-  function downloadCertificate() {
+ function loadImageAsBase64(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  /* ----------------------------------
+     Download Certificate
+  ---------------------------------- */
+  async function downloadCertificate() {
     if (data?.total_donations < 1) {
       alert("You need at least 1 donation to download a certificate.");
       return;
@@ -115,6 +135,20 @@ export default function BenefitsPage() {
     setDownloading(true);
 
     try {
+      /* LOAD LOGO */
+      const logoBase64 = await loadImageAsBase64(
+        "/photo_2025-10-28_11-17-55-removebg-preview.png"
+      );
+
+      /* MEDAL CONFIG */
+      const medalConfig = {
+        bronze: { color: [205, 127, 50], label: "BRONZE DONOR" },
+        silver: { color: [148, 163, 184], label: "SILVER DONOR" },
+        gold: { color: [202, 138, 4], label: "GOLD DONOR" },
+        new: { color: [148, 163, 184], label: "NEW DONOR" },
+      };
+
+      /* CREATE PDF */
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
@@ -125,235 +159,178 @@ export default function BenefitsPage() {
       const pageHeight = doc.internal.pageSize.getHeight();
       const centerX = pageWidth / 2;
 
-      // ========== BACKGROUND & BORDERS ==========
-      // Gradient-like effect using multiple rectangles
-      doc.setFillColor(255, 255, 255);
+      /* BACKGROUND */
+      doc.setFillColor(254, 242, 242);
       doc.rect(0, 0, pageWidth, pageHeight, "F");
 
-      // Elegant top border accent
-      doc.setFillColor(220, 38, 38);
-      doc.rect(0, 0, pageWidth, 8, "F");
-
-      // Elegant bottom border accent
-      doc.rect(0, pageHeight - 8, pageWidth, 8, "F");
-
-      // Left accent
-      doc.setFillColor(244, 63, 94);
-      doc.rect(0, 0, 4, pageHeight, "F");
-
-      // Right accent
-      doc.rect(pageWidth - 4, 0, 4, pageHeight, "F");
-
-      // Subtle background pattern (light red corners)
-      doc.setFillColor(254, 242, 242);
-      doc.rect(0, 0, 30, 30, "F");
-      doc.rect(pageWidth - 30, 0, 30, 30, "F");
-      doc.rect(0, pageHeight - 30, 30, 30, "F");
-      doc.rect(pageWidth - 30, pageHeight - 30, 30, 30, "F");
-
-      // ========== HEADER ICON CIRCLE ==========
-      doc.setFillColor(220, 38, 38);
-      doc.circle(centerX, 25, 10, "F");
-
-      // Inner white circle
-      doc.setFillColor(255, 255, 255);
-      doc.circle(centerX, 25, 8, "F");
-
-      // Droplet shape inside
-      doc.setFillColor(220, 38, 38);
-      doc.circle(centerX, 22, 2.5, "F");
-      const dropletPath = [
-        [centerX - 2, 24],
-        [centerX + 2, 24],
-        [centerX, 29],
-      ];
-      for (let i = 0; i < dropletPath.length; i++) {
-        if (i === 0) doc.moveTo(dropletPath[i][0], dropletPath[i][1]);
-        else doc.lineTo(dropletPath[i][0], dropletPath[i][1]);
-      }
-      doc.fill();
-
-      // ========== MAIN TITLE ==========
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(32);
-      doc.setTextColor(25, 25, 112);
-      doc.text("CERTIFICATE OF HONOR", centerX, 45, { align: "center" });
-
-      // Decorative underline
-      doc.setDrawColor(220, 38, 38);
-      doc.setLineWidth(1.5);
-      doc.line(centerX - 60, 49, centerX + 60, 49);
-
-      // ========== SUBTITLE ==========
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139);
-      doc.text("In Recognition of Generous Blood Donation", centerX, 56, { align: "center" });
-
-      // ========== RECOGNITION TEXT ==========
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(71, 85, 105);
-      doc.text("This certificate is presented to", centerX, 70, { align: "center" });
-
-      // ========== DONOR NAME (LARGE) ==========
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(28);
-      doc.setTextColor(220, 38, 38);
-      doc.text(user?.full_name || "Valued Donor", centerX, 82, { align: "center" });
-
-      // ========== BLOOD TYPE BADGE ==========
-      if (user?.blood_type) {
-        const badgeWidth = 22;
-        const badgeX = centerX - badgeWidth / 2;
-        
-        // Background
-        doc.setFillColor(220, 38, 38);
-        doc.roundedRect(badgeX, 86, badgeWidth, 10, 2, 2, "F");
-        
-        // Text
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9);
-        doc.setTextColor(255, 255, 255);
-        doc.text(user.blood_type, centerX, 91, { align: "center" });
-      }
-
-      // ========== ACHIEVEMENT STATS ==========
-      const statsY = 100;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
-      doc.text("for their outstanding contribution to lifesaving efforts", centerX, statsY, { align: "center" });
-
-      // Stats boxes
-      const boxWidth = 25;
-      const spacing = 45;
-      
-      // Total Donations box
-      doc.setFillColor(244, 63, 94);
-      doc.roundedRect(centerX - spacing, statsY + 8, boxWidth, 16, 2, 2, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      doc.text(data.total_donations.toString(), centerX - spacing + boxWidth / 2, statsY + 18, { align: "center" });
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor(220, 38, 38);
-      doc.text("Donations", centerX - spacing + boxWidth / 2, statsY + 27, { align: "center" });
-
-      // Days Active box
-      doc.setFillColor(59, 130, 246);
-      doc.roundedRect(centerX, statsY + 8, boxWidth, 16, 2, 2, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.setTextColor(255, 255, 255);
-      const daysActive = data?.last_donation_date 
-        ? Math.floor((Date.now() - new Date(data.last_donation_date).getTime()) / (1000 * 60 * 60 * 24))
-        : 0;
-      doc.text(daysActive.toString(), centerX + boxWidth / 2, statsY + 18, { align: "center" });
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor(59, 130, 246);
-      doc.text("Days Active", centerX + boxWidth / 2, statsY + 27, { align: "center" });
-
-      // Donor Level box
-      doc.setFillColor(202, 138, 4);
-      doc.roundedRect(centerX + spacing, statsY + 8, boxWidth, 16, 2, 2, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      const levelName = DONOR_LEVELS[data?.level]?.name || "Donor";
-      const shortLevel = levelName.split(" ")[0];
-      doc.text(shortLevel, centerX + spacing + boxWidth / 2, statsY + 18, { align: "center" });
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor(202, 138, 4);
-      doc.text("Level", centerX + spacing + boxWidth / 2, statsY + 27, { align: "center" });
-
-      // ========== DONOR LEVEL BADGE ==========
-      const levelY = statsY + 35;
-      const levelColor = {
-        bronze: [180, 83, 9],
-        silver: [100, 116, 139],
-        gold: [202, 138, 4],
-        new: [100, 116, 139],
-      }[data?.level] || [100, 116, 139];
-
-      doc.setFillColor(levelColor[0], levelColor[1], levelColor[2]);
-      doc.roundedRect(centerX - 28, levelY, 56, 14, 7, 7, "F");
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(255, 255, 255);
-      doc.text(DONOR_LEVELS[data?.level]?.name || "Valued Donor", centerX, levelY + 9, { align: "center" });
-
-      // ========== FOOTER SECTION ==========
-      const footerY = pageHeight - 28;
-
-      // Last Donation info
-      if (data?.last_donation_date) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(100, 116, 139);
-        const lastDonationText = `Last Donation: ${formatDate(data.last_donation_date)}`;
-        doc.text(lastDonationText, 20, footerY);
-      }
-
-      // Issue date (center)
-      const issueDate = new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Issued: ${issueDate}`, centerX, footerY, { align: "center" });
-
-      // Certificate ID (right)
-      const certificateId = `BC-${Date.now().toString(36).toUpperCase()}`;
-      doc.text(`ID: ${certificateId}`, pageWidth - 20, footerY, { align: "right" });
-
-      // ========== ORGANIZATION INFO ==========
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(220, 38, 38);
-      doc.text("BloodConnect Cambodia", centerX, footerY + 8, { align: "center" });
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text("Connecting Donors, Saving Lives", centerX, footerY + 13, { align: "center" });
-
-      // ========== DECORATIVE STAMPS ==========
-      // Top left corner design
       doc.setDrawColor(220, 38, 38);
       doc.setLineWidth(1);
-      doc.line(15, 18, 15, 25);
-      doc.line(15, 18, 25, 18);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
-      // Top right corner design
-      doc.line(pageWidth - 15, 18, pageWidth - 15, 25);
-      doc.line(pageWidth - 15, 18, pageWidth - 25, 18);
+      doc.setDrawColor(252, 165, 165);
+      doc.setLineWidth(0.5);
+      doc.rect(15, 15, pageWidth - 30, pageHeight - 30);
 
-      // Bottom left corner design
-      doc.line(15, pageHeight - 18, 15, pageHeight - 25);
-      doc.line(15, pageHeight - 18, 25, pageHeight - 18);
+      /* LOGO */
+      const logoSize = 50;
+      doc.addImage(
+        logoBase64,
+        "PNG",
+        centerX - logoSize / 2,
+        22,
+        logoSize,
+        logoSize
+      );
 
-      // Bottom right corner design
-      doc.line(pageWidth - 15, pageHeight - 18, pageWidth - 15, pageHeight - 25);
-      doc.line(pageWidth - 15, pageHeight - 18, pageWidth - 25, pageHeight - 18);
+      /* TITLE */
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(28);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Certificate of Appreciation", centerX, 72, { align: "center" });
 
-      // Save PDF
-      const filename = `BloodConnect_Certificate_${(user?.full_name || "Donor").replace(/\s+/g, "_")}.pdf`;
-      doc.save(filename);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Blood Donation Recognition", centerX, 82, { align: "center" });
 
+      doc.setDrawColor(220, 38, 38);
+      doc.setLineWidth(0.8);
+      doc.line(centerX - 55, 88, centerX + 55, 88);
+
+      /* NAME */
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      doc.text("This is to certify that", centerX, 100, { align: "center" });
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(26);
+      doc.setTextColor(220, 38, 38);
+      doc.text(user?.full_name || "Valued Donor", centerX, 114, {
+        align: "center",
+      });
+
+      /* BLOOD TYPE */
+      if (user?.blood_type) {
+        doc.setFillColor(220, 38, 38);
+        doc.roundedRect(centerX - 16, 120, 32, 12, 6, 6, "F");
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text(user.blood_type, centerX, 128, { align: "center" });
+      }
+
+      /* DONATION COUNT */
+      const baseY = user?.blood_type ? 142 : 132;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      doc.text(
+        "has generously contributed to saving lives through",
+        centerX,
+        baseY,
+        { align: "center" }
+      );
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(42);
+      doc.setTextColor(220, 38, 38);
+      doc.text(String(data.total_donations), centerX, baseY + 18, {
+        align: "center",
+      });
+
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(55, 65, 81);
+      doc.text(
+        data.total_donations === 1 ? "Blood Donation" : "Blood Donations",
+        centerX,
+        baseY + 32,
+        { align: "center" }
+      );
+
+      /* -------------------------------
+         MEDAL (FIXED, CLEAN, PROFESSIONAL)
+      -------------------------------- */
+      /* -------------------------------
+     MEDAL (CERTIFICATE STYLE)
+  -------------------------------- */
+      const medal = medalConfig[data.level] || medalConfig.new;
+
+      // Move medal higher
+      const badgeY = baseY + 34;
+      const badgeWidth = 42;
+      const badgeHeight = 9;
+
+      // subtle divider
+      doc.setDrawColor(220, 38, 38);
+      doc.setLineWidth(0.3);
+      doc.line(centerX - 22, badgeY - 6, centerX + 22, badgeY - 6);
+
+      // medal outline (NOT filled button)
+      doc.setDrawColor(...medal.color);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(
+        centerX - badgeWidth / 2,
+        badgeY,
+        badgeWidth,
+        badgeHeight,
+        4,
+        4,
+        "S"
+      );
+
+      // medal text
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(...medal.color);
+      doc.text(medal.label, centerX, badgeY + 6.2, {
+        align: "center",
+      });
+
+
+      /* FOOTER */
+      const footerY = pageHeight - 30;
+
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Issued on: ${new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}`,
+        25,
+        footerY
+      );
+
+      const certificateId = `BC-${Date.now().toString(36).toUpperCase()}`;
+      doc.text(`Certificate ID: ${certificateId}`, pageWidth - 25, footerY, {
+        align: "right",
+      });
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(220, 38, 38);
+      doc.text("BloodConnect Cambodia", centerX, footerY + 10, {
+        align: "center",
+      });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Connecting donors, saving lives", centerX, footerY + 13, {
+        align: "center",
+      });
+
+      /* SAVE */
+      doc.save(
+        `BloodConnect_Certificate_${(user?.full_name || "Donor")
+          .replace(/\s+/g, "_")
+          .toLowerCase()}.pdf`
+      );
     } catch (err) {
       console.error("PDF generation error:", err);
-      alert("Failed to generate certificate. Please try again.");
+      alert("Failed to generate certificate.");
     } finally {
       setDownloading(false);
     }

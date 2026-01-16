@@ -20,7 +20,6 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-
   function handleAuthSuccess(res) {
     login(res);
 
@@ -38,6 +37,10 @@ export default function RegisterPage() {
       return setError("Email and password are required");
     }
 
+    if (!phoneNumber.trim()) {
+      return setError("Phone number is required");
+    }
+
     if (password.length < 6) {
       return setError("Password must be at least 6 characters");
     }
@@ -45,17 +48,16 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const cred = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
 
       const firebaseToken = await cred.user.getIdToken();
 
       const res = await apiFetch("/api/auth/register", {
         method: "POST",
-        body: { firebaseToken , phone_number: phoneNumber },
+        body: {
+          firebaseToken,
+          phone_number: phoneNumber, // ✅ already correct
+        },
       });
 
       handleAuthSuccess(res);
@@ -81,7 +83,7 @@ export default function RegisterPage() {
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white opacity-5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        
+
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="bg-white p-3 rounded-xl">
@@ -89,12 +91,13 @@ export default function RegisterPage() {
             </div>
             <h1 className="text-3xl font-bold text-white">Borejak</h1>
           </div>
-          
+
           <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
             Join Our Community of Life Savers
           </h2>
           <p className="text-red-100 text-lg mb-12">
-            Every donation can save up to three lives. Register today and become a hero in someone's story.
+            Every donation can save up to three lives. Register today and become
+            a hero in someone's story.
           </p>
 
           <div className="space-y-6">
@@ -104,7 +107,10 @@ export default function RegisterPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Save Lives</h3>
-                <p className="text-red-100 text-sm">Your blood donation can help patients in emergency situations and those with chronic illnesses</p>
+                <p className="text-red-100 text-sm">
+                  Your blood donation can help patients in emergency situations
+                  and those with chronic illnesses
+                </p>
               </div>
             </div>
 
@@ -114,7 +120,10 @@ export default function RegisterPage() {
               </div>
               <div>
                 <h3 className="text-white font-semibold mb-1">Safe & Secure</h3>
-                <p className="text-red-100 text-sm">All donations follow strict medical protocols with certified professionals</p>
+                <p className="text-red-100 text-sm">
+                  All donations follow strict medical protocols with certified
+                  professionals
+                </p>
               </div>
             </div>
 
@@ -123,13 +132,17 @@ export default function RegisterPage() {
                 <Users className="w-6 h-6 text-red-400" />
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-1">Join Thousands</h3>
-                <p className="text-red-100 text-sm">Be part of a community that's making a real difference every day</p>
+                <h3 className="text-white font-semibold mb-1">
+                  Join Thousands
+                </h3>
+                <p className="text-red-100 text-sm">
+                  Be part of a community that's making a real difference every
+                  day
+                </p>
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Right Side - Registration Form */}
@@ -143,8 +156,12 @@ export default function RegisterPage() {
 
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-              <p className="text-gray-600">Start your journey as a blood donor hero</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Create Account
+              </h2>
+              <p className="text-gray-600">
+                Start your journey as a blood donor hero
+              </p>
             </div>
 
             {error && (
@@ -170,19 +187,18 @@ export default function RegisterPage() {
               </div>
 
               <div>
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Phone Number
-  </label>
-  <input
-    type="tel"
-    placeholder="012345678"
-    className="border border-gray-300 w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-red-500"
-    value={phoneNumber}
-    onChange={(e) => setPhoneNumber(e.target.value)}
-    disabled={loading}
-  />
-</div>
-
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  placeholder="012345678"
+                  className="border border-gray-300 w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-red-500"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -206,8 +222,20 @@ export default function RegisterPage() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Creating account...
                   </span>
@@ -221,7 +249,9 @@ export default function RegisterPage() {
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500 font-medium">Or continue with</span>
+                  <span className="px-4 bg-white text-gray-500 font-medium">
+                    Or continue with
+                  </span>
                 </div>
               </div>
 
@@ -235,7 +265,10 @@ export default function RegisterPage() {
 
               <p className="text-sm text-center text-gray-600 pt-4">
                 Already have an account?{" "}
-                <Link href="/login" className="text-red-600 hover:text-red-700 font-semibold hover:underline">
+                <Link
+                  href="/login"
+                  className="text-red-600 hover:text-red-700 font-semibold hover:underline"
+                >
                   Sign In
                 </Link>
               </p>

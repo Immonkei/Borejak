@@ -35,76 +35,72 @@ export default function AdminDonationsPage() {
     }
   }
 
-async function setStatus(id, status) {
-  console.log("🔥 setStatus called with:", status);
-
-  if (status === "rejected") {
-    const ok = confirm("Are you sure you want to reject this donation?");
-    if (!ok) return;
+  // 🔧 FIXED: Separate handlers for each action
+  async function approveDonation(id) {
+    try {
+      setLoadingId(id);
+      await updateDonationStatus(id, { status: "approved" });
+      await load();
+    } catch (err) {
+      alert(err.message || "Failed to approve donation");
+    } finally {
+      setLoadingId(null);
+    }
   }
 
-  if (status === "completed") {
-    const quantity = prompt("Enter donated blood amount (ml):");
+  async function rejectDonation(id) {
+    const ok = confirm("Are you sure you want to reject this donation?");
+    if (!ok) return;
+
+    try {
+      setLoadingId(id);
+      await updateDonationStatus(id, { status: "rejected" });
+      await load();
+    } catch (err) {
+      alert(err.message || "Failed to reject donation");
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function completeDonation(donation) {
+    const quantity = prompt("Enter donated blood quantity (ml):");
 
     if (!quantity || Number(quantity) <= 0) {
-      alert("Valid quantity is required");
+      alert("Invalid quantity");
       return;
     }
 
     try {
-      setLoadingId(id);
-      await updateDonationStatus(id, {
+      setLoadingId(donation.id);
+      await updateDonationStatus(donation.id, {
         status: "completed",
         quantity_ml: Number(quantity),
       });
-      load();
+      await load();
+    } catch (err) {
+      alert(err.message || "Failed to complete donation");
     } finally {
       setLoadingId(null);
     }
-
-    return; // ⛔ stop here
   }
-
-  // approved / rejected
-  try {
-    setLoadingId(id);
-    await updateDonationStatus(id, { status });
-    load();
-  } finally {
-    setLoadingId(null);
-  }
-}
-
-
-async function completeDonation(donation) {
-  const quantity = prompt("Enter donated blood quantity (ml):");
-
-  if (!quantity || Number(quantity) <= 0) {
-    alert("Invalid quantity");
-    return;
-  }
-
-  try {
-    setLoadingId(donation.id);
-
-    await updateDonationStatus(donation.id, {
-      status: "completed",
-      quantity_ml: Number(quantity),
-    });
-
-    load();
-  } finally {
-    setLoadingId(null);
-  }
-}
-
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Donations Management</h1>
 
-      {loading && <p>Loading donations…</p>}
-      {error && <p className="text-red-600">{error}</p>}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-slate-600">Loading donations...</span>
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-4">
+          {error}
+        </div>
+      )}
 
       {!loading && (
         <div className="overflow-x-auto bg-white shadow rounded-lg">
@@ -121,9 +117,16 @@ async function completeDonation(donation) {
 
             <tbody>
               {donations.map((d) => (
-                <tr key={d.id} className="border-t">
-                  <td className="p-3">{d.user_email}</td>
-                  <td className="p-3">{d.event_title ?? "-"}</td>
+                <tr key={d.id} className="border-t hover:bg-slate-50 transition-colors">
+                  <td className="p-3">
+                    <div>
+                      <div className="font-medium text-slate-900">{d.user_name}</div>
+                      <div className="text-xs text-slate-500">{d.user_email}</div>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <div className="font-medium text-slate-700">{d.event_title ?? "-"}</div>
+                  </td>
 
                   <td className="p-3">
                     <span
@@ -134,7 +137,7 @@ async function completeDonation(donation) {
                   </td>
 
                   <td className="p-3">
-                    {d.quantity_ml ?? "-"}
+                    <span className="font-mono">{d.quantity_ml ?? "-"}</span>
                   </td>
 
                   <td className="p-3 space-x-2">
@@ -142,18 +145,18 @@ async function completeDonation(donation) {
                       <>
                         <button
                           disabled={loadingId === d.id}
-                          onClick={() => setStatus(d.id, "approved")}
-                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                          onClick={() => approveDonation(d.id)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          Approve
+                          {loadingId === d.id ? "..." : "Approve"}
                         </button>
 
                         <button
                           disabled={loadingId === d.id}
-                          onClick={() => setStatus(d.id, "rejected")}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                          onClick={() => rejectDonation(d.id)}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
-                          Reject
+                          {loadingId === d.id ? "..." : "Reject"}
                         </button>
                       </>
                     )}
@@ -162,10 +165,14 @@ async function completeDonation(donation) {
                       <button
                         disabled={loadingId === d.id}
                         onClick={() => completeDonation(d)}
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Complete
+                        {loadingId === d.id ? "..." : "Complete"}
                       </button>
+                    )}
+
+                    {(d.status === "completed" || d.status === "rejected") && (
+                      <span className="text-slate-400 text-xs">No actions</span>
                     )}
                   </td>
                 </tr>
@@ -173,8 +180,14 @@ async function completeDonation(donation) {
 
               {donations.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="p-6 text-center text-slate-500">
-                    No donations found
+                  <td colSpan="5" className="p-12 text-center">
+                    <div className="text-slate-400">
+                      <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-slate-500 font-medium">No donations found</p>
+                      <p className="text-slate-400 text-sm mt-1">Donations will appear here once users register for events</p>
+                    </div>
                   </td>
                 </tr>
               )}
