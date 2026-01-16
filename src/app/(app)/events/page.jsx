@@ -236,7 +236,7 @@ export default function EventsPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-8">
-          {["all", "upcoming", "ongoing", "completed"].map((f) => (
+          {["all", "upcoming", "ongoing"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}

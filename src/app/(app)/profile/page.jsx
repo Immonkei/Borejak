@@ -376,53 +376,6 @@ export default function ProfilePage() {
           </div>
 
 
-          {/* 🩸 Donation Cooldown Status */}
-<div className="mb-8 bg-slate-50 border border-slate-200 rounded-2xl p-5">
-  <div className="flex items-center gap-2 mb-3">
-    <Clock className="w-5 h-5 text-red-600" />
-    <h3 className="font-bold text-slate-800">Donation Eligibility</h3>
-  </div>
-
-  {cooldownLoading ? (
-    <p className="text-slate-500 text-sm">Checking donation eligibility…</p>
-  ) : canDonate ? (
-    <div className="flex items-start gap-3 bg-green-50 text-green-700 p-4 rounded-xl">
-      <CheckCircle className="w-5 h-5 mt-0.5" />
-      <div>
-        <p className="font-semibold">You are eligible to donate</p>
-        <p className="text-sm">
-          You can register for blood donation events.
-        </p>
-      </div>
-    </div>
-  ) : (
-    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl text-yellow-800">
-      <p className="font-semibold mb-2">
-        ⏳ Recovery period in progress
-      </p>
-
-      <ul className="text-sm space-y-1">
-        {lastDonationDate && (
-          <li>
-            <strong>Last donation:</strong>{" "}
-            {lastDonationDate.toLocaleDateString()}
-          </li>
-        )}
-        <li>
-          <strong>Remaining days:</strong> {remainingDays} days
-        </li>
-        {nextEligibleDate && (
-          <li>
-            <strong>Next eligible date:</strong>{" "}
-            {nextEligibleDate.toLocaleDateString()}
-          </li>
-        )}
-      </ul>
-    </div>
-  )}
-</div>
-
-
           {/* Save Button */}
           <button
             onClick={saveProfile}
@@ -441,18 +394,6 @@ export default function ProfilePage() {
               </>
             )}
           </button>
-        </div>
-
-        {/* Info Banner */}
-        <div className="mt-6 bg-blue-50 border-l-4 border-blue-600 rounded-xl p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-blue-900 mb-1">90-Day Donation Cooldown</p>
-            <p className="text-sm text-blue-800">
-              After each donation, your body needs 90 days to recover before you can donate again. 
-              This is a medical safety requirement. The system will prevent registration during this period.
-            </p>
-          </div>
         </div>
       </div>
 

@@ -28,6 +28,9 @@ export async function apiFetch(
       : undefined,
   });
 
+  //  if (res.status === 204) {
+  //   return null;
+  // }
   let data = null;
  // ✅ CRITICAL FIX
   if (res.status !== 204) {

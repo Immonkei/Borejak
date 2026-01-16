@@ -191,57 +191,7 @@ export default function HospitalDetailPage() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
-        {/* Blood Inventory Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 transform hover:shadow-2xl transition-all duration-500 animate-fade-in-up">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
-              <Droplets className="w-7 h-7 text-red-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800">Blood Inventory</h2>
-              <p className="text-slate-500 text-sm">Current blood stock levels</p>
-            </div>
-          </div>
-
-          {hospital.blood_inventory && Object.keys(hospital.blood_inventory).length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(hospital.blood_inventory).map(([type, amount]) => {
-                const level = getBloodLevelColor(amount);
-                return (
-                  <div
-                    key={type}
-                    className="group relative bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 text-center hover:shadow-lg transition-all duration-300 overflow-hidden"
-                  >
-                    {/* Background decoration */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${level.bg} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-                    
-                    <div className="relative">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-white rounded-2xl shadow-sm flex items-center justify-center">
-                        <span className="text-2xl font-black text-red-600">{type}</span>
-                      </div>
-                      <p className={`text-2xl font-bold ${level.text}`}>
-                        {amount} <span className="text-sm font-medium">ml</span>
-                      </p>
-                      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
-                        amount < 500 ? "bg-red-100 text-red-700" :
-                        amount < 1000 ? "bg-amber-100 text-amber-700" :
-                        "bg-emerald-100 text-emerald-700"
-                      }`}>
-                        {level.label}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-slate-50 rounded-2xl">
-              <Droplets className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">No inventory data available</p>
-            </div>
-          )}
-        </div>
-
+        
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Donation Events */}
