@@ -18,24 +18,63 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getEventById, registerForEvent } from "@/services/events";
+import { getMyBenefits } from "@/services/benefits";
 import { useAuth } from "@/context/AuthContext";
-import { useDonationCooldown } from "@/hooks/useDonationCooldown"; // 🔧 ADD cooldown hook
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { canDonate, remainingDays, nextEligibleDate } = useDonationCooldown(); // 🔧 ADD cooldown
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [error, setError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [benefits, setBenefits] = useState(null);
+  const [benefitsLoading, setBenefitsLoading] = useState(true);
+
+  const canDonate = benefits?.eligible ?? true;
+
+const nextEligibleDate = benefits?.next_eligible_date
+  ? new Date(benefits.next_eligible_date)
+  : null;
+
+const remainingDays = nextEligibleDate
+  ? Math.ceil(
+      (nextEligibleDate.getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24)
+    )
+  : 0;
+
+
 
   useEffect(() => {
     loadEvent();
   }, [id]);
+
+  useEffect(() => {
+  let isMounted = true;
+
+  async function loadBenefits() {
+    try {
+      const data = await getMyBenefits();
+      if (isMounted) setBenefits(data);
+    } catch (err) {
+      console.error("Failed to load donation status");
+    } finally {
+      if (isMounted) setBenefitsLoading(false);
+    }
+  }
+
+  loadBenefits();
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
+
+
 
   async function loadEvent() {
     try {
@@ -56,11 +95,16 @@ export default function EventDetailPage() {
       return;
     }
 
-    // 🔧 CHECK COOLDOWN before registration
-    if (!canDonate) {
-      alert(`You must wait ${remainingDays} more days before your next donation. Recovery period in progress.`);
-      return;
-    }
+   if (!canDonate && nextEligibleDate) {
+  alert(
+    `You can donate again on ${nextEligibleDate.toLocaleDateString(
+      "en-US",
+      { year: "numeric", month: "long", day: "numeric" }
+    )}`
+  );
+  return;
+}
+
 
     try {
       setRegistering(true);
@@ -216,20 +260,7 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      {/* 🔧 Cooldown Alert */}
-      {!canDonate && (
-        <div className="bg-amber-50 border-b-2 border-amber-200 py-4 px-6">
-          <div className="max-w-5xl mx-auto flex items-start gap-3">
-            <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-900">Recovery Period Active</p>
-              <p className="text-amber-700 text-sm">
-                You can donate again in <strong>{remainingDays} days</strong> ({nextEligibleDate?.toLocaleDateString()})
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+ 
 
       {/* Hero Header */}
       <div className="relative overflow-hidden">
@@ -500,12 +531,7 @@ export default function EventDetailPage() {
               {(event.status === "upcoming" || event.status === "ongoing") && (
                 <>
                   {getRegistrationButton()}
-                  
-                  {/* Share Button */}
-                  <button className="w-full mt-4 py-3 rounded-2xl font-semibold border-2 border-slate-200 text-slate-600 hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-all duration-300 flex items-center justify-center gap-2">
-                    <Share2 className="w-5 h-5" />
-                    Share Event
-                  </button>
+                
                 </>
               )}
 
