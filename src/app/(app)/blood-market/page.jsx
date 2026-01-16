@@ -196,19 +196,35 @@ export default function BloodMarketPage() {
     filters.urgency,
   ].filter(Boolean).length;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-red-100 rounded-full"></div>
-            <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+if (loading) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 flex items-center justify-center">
+      <div className="text-center space-y-5">
+        
+        {/* Spinner */}
+        <div className="relative mx-auto w-16 h-16">
+          <div className="absolute inset-0 rounded-full bg-red-200/40 blur-md animate-pulse"></div>
+
+          <div className="relative w-16 h-16">
+            <div className="w-16 h-16 border-4 border-red-200 rounded-full"></div>
+            <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute inset-0"></div>
           </div>
-          <p className="text-slate-600 mt-4 font-medium">Loading blood market...</p>
         </div>
+
+        {/* Text */}
+        <p className="text-slate-600 font-medium tracking-wide">
+          Loading blood market
+          <span className="inline-flex ml-1">
+            <span className="animate-bounce">.</span>
+            <span className="animate-bounce delay-150">.</span>
+            <span className="animate-bounce delay-300">.</span>
+          </span>
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 py-10 px-6">

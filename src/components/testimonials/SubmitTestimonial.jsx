@@ -80,7 +80,7 @@ export default function SubmitTestimonial() {
         {/* Submit */}
         <button
           disabled={loading}
-          className="w-full bg-gradient-to-r from-red-600 to-purple-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+          className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
         >
           <Send className="w-4 h-4" />
           Submit Testimonial

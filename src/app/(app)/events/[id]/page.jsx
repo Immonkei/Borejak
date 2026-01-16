@@ -204,20 +204,40 @@ const remainingDays = nextEligibleDate
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-rose-50">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-red-100 rounded-full"></div>
-            <div className="w-20 h-20 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-            <Droplets className="w-8 h-8 text-red-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+if (loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-rose-50">
+      <div className="text-center space-y-6">
+        
+        {/* Spinner */}
+        <div className="relative mx-auto w-20 h-20">
+          {/* Glow */}
+          <div className="absolute inset-0 rounded-full bg-red-200/40 blur-lg animate-pulse" />
+
+          {/* Rings */}
+          <div className="relative w-20 h-20">
+            <div className="w-20 h-20 border-4 border-red-200 rounded-full" />
+            <div className="w-20 h-20 border-4 border-red-600 border-t-transparent rounded-full animate-spin absolute inset-0" />
           </div>
-          <p className="text-slate-600 mt-6 font-medium animate-pulse">Loading event...</p>
+
+          {/* Icon */}
+          <Droplets className="w-8 h-8 text-red-600 absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
         </div>
+
+        {/* Text */}
+        <p className="text-slate-600 font-medium tracking-wide">
+          Loading event
+          <span className="inline-flex ml-1">
+            <span className="animate-bounce">.</span>
+            <span className="animate-bounce delay-150">.</span>
+            <span className="animate-bounce delay-300">.</span>
+          </span>
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   if (error || !event) {
     return (
