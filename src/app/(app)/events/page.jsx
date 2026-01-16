@@ -7,25 +7,19 @@ import {
   Clock,
   Users,
   Building2,
-  CheckCircle,
-  XCircle,
-  Hourglass,
 } from "lucide-react";
-import { getEvents, registerForEvent } from "@/services/events";
-import { DonationCooldownAlert } from "@/components/DonationCooldownAlert";
-import { useDonationCooldown } from "@/hooks/useDonationCooldown";
+import { getEvents } from "@/services/events";
 import { useRouter } from "next/navigation";
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState("");
 
   const router = useRouter();
-  const { canDonate, remainingDays, lastDonationDate, nextEligibleDate } = useDonationCooldown();
 
+  /* ---------------- LOAD EVENTS ---------------- */
   useEffect(() => {
     loadEvents();
   }, []);
@@ -42,29 +36,10 @@ export default function EventsPage() {
     }
   }
 
-  async function register(id) {
-    // 🔥 Check cooldown before allowing registration
-    if (!canDonate) {
-      setError(`You can donate in ${remainingDays} days. Recovery period in progress.`);
-      return;
-    }
-
-    try {
-      setLoadingId(id);
-      setError("");
-      await registerForEvent(id);
-      alert("Registration submitted! Waiting for admin approval.");
-      await loadEvents();
-    } catch (err) {
-      if (err.message?.includes("90 days")) {
-        setError(err.message);
-      } else {
-        alert(err.message || "Registration failed");
-      }
-    } finally {
-      setLoadingId(null);
-    }
-  }
+  /* ---------------- FILTER ---------------- */
+  const filteredEvents = events.filter((event) =>
+    filter === "all" ? true : event.status === filter
+  );
 
   const formatDate = (dateString) =>
     dateString
@@ -93,115 +68,16 @@ export default function EventsPage() {
     }
   };
 
-  // Get registration button based on user's registration status
-  const getRegistrationButton = (event) => {
-    const regStatus = event.user_registration_status;
-    const isRegistered = event.is_registered;
-    const isFull = event.max_participants && event.registered_count >= event.max_participants;
-
-    // User has registered - show their status
-    if (isRegistered || regStatus) {
-      if (regStatus === "pending") {
-        return (
-          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-yellow-100 text-yellow-700 flex items-center justify-center gap-2">
-            <Hourglass className="w-5 h-5" />
-            Pending Approval
-          </button>
-        );
-      }
-      if (regStatus === "approved" || regStatus === "completed") {
-        return (
-          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-green-100 text-green-700 flex items-center justify-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            Approved
-          </button>
-        );
-      }
-      if (regStatus === "rejected") {
-        return (
-          <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-red-100 text-red-700 flex items-center justify-center gap-2">
-            <XCircle className="w-5 h-5" />
-            Rejected
-          </button>
-        );
-      }
-      return (
-        <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-100 text-slate-600">
-          Already Registered
-        </button>
-      );
-    }
-
-    // 🔥 CHECK COOLDOWN
-    if (!canDonate) {
-      return (
-        <button
-          disabled
-          title={`Recovery period: ${remainingDays} days remaining`}
-          className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-200 text-slate-500 cursor-not-allowed"
-        >
-          Recovery Period Active ({remainingDays}d)
-        </button>
-      );
-    }
-
-    // Event is full
-    if (isFull) {
-      return (
-        <button disabled className="mt-6 w-full py-3 rounded-xl font-semibold bg-slate-200 text-slate-500">
-          Event Full
-        </button>
-      );
-    }
-
-    // Can register
-    return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          register(event.id);
-        }}
-        disabled={loadingId === event.id}
-        className={`mt-6 w-full py-3 rounded-xl font-semibold transition-all ${
-          loadingId === event.id
-            ? "bg-slate-400 text-white cursor-not-allowed"
-            : "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-700 text-white"
-        }`}
-      >
-        {loadingId === event.id ? "Registering..." : "Register Now"}
-      </button>
-    );
-  };
-
-  // Get badge for registration status
-  const getRegStatusBadge = (event) => {
-    const regStatus = event.user_registration_status;
-    if (!regStatus && !event.is_registered) return null;
-
-    if (regStatus === "approved" || regStatus === "completed") {
-      return <span className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">✓ Approved</span>;
-    }
-    if (regStatus === "rejected") {
-      return <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">✗ Rejected</span>;
-    }
-    return <span className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold">⏳ Pending</span>;
-  };
-
-  const filteredEvents = events.filter((event) =>
-    filter === "all" ? true : event.status === filter
-  );
-
+  /* ---------------- LOADING ---------------- */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-200 border-t-red-600 mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading events...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        Loading events...
       </div>
     );
   }
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-purple-50">
       {/* Hero */}
@@ -209,25 +85,18 @@ export default function EventsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Calendar className="w-10 h-10" />
-            <h1 className="text-4xl md:text-5xl font-bold">Blood Donation Events</h1>
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Blood Donation Events
+            </h1>
           </div>
           <p className="text-xl text-red-100 max-w-2xl">
-            Join us in saving lives. Find upcoming blood donation drives near you.
+            Browse upcoming blood donation events near you.
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* 🔥 Cooldown Alert */}
-        {!canDonate && (
-          <DonationCooldownAlert
-            remainingDays={remainingDays}
-            nextEligibleDate={nextEligibleDate}
-            lastDonationDate={lastDonationDate}
-          />
-        )}
-
-        {/* Error Message */}
+        {/* Error */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-6">
             {error}
@@ -255,18 +124,16 @@ export default function EventsPage() {
         {filteredEvents.length === 0 ? (
           <div className="text-center py-20">
             <Calendar className="w-20 h-20 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-slate-700 mb-2">No events found</h3>
-            <p className="text-slate-500">
-              {filter === "all" ? "There are no events scheduled." : `There are no ${filter} events.`}
-            </p>
+            <h3 className="text-2xl font-semibold text-slate-700 mb-2">
+              No events found
+            </h3>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
               <div
                 key={event.id}
-                onClick={() => router.push(`/events/${event.id}`)}
-                className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group cursor-pointer border border-slate-100"
+                className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100"
               >
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
@@ -274,7 +141,7 @@ export default function EventsPage() {
                     <img
                       src={event.image_url}
                       alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-red-400 to-red-500 flex items-center justify-center">
@@ -282,18 +149,18 @@ export default function EventsPage() {
                     </div>
                   )}
 
-                  {/* Event status badge */}
-                  <div className={`absolute top-4 right-4 ${getStatusColor(event.status)} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+                  <div
+                    className={`absolute top-4 right-4 ${getStatusColor(
+                      event.status
+                    )} text-white px-3 py-1 rounded-full text-xs font-semibold`}
+                  >
                     {event.status}
                   </div>
-
-                  {/* User's registration status badge */}
-                  {getRegStatusBadge(event)}
                 </div>
 
                 {/* Content */}
                 <div className="p-6">
-                  <h2 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-red-600 transition-colors">
+                  <h2 className="text-xl font-bold text-slate-800 mb-3">
                     {event.title}
                   </h2>
 
@@ -301,7 +168,8 @@ export default function EventsPage() {
                     {event.event_date && (
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-red-500" />
-                        {formatDate(event.event_date)} • {formatTime(event.event_date)}
+                        {formatDate(event.event_date)} •{" "}
+                        {formatTime(event.event_date)}
                       </div>
                     )}
 
@@ -321,19 +189,20 @@ export default function EventsPage() {
 
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-red-500" />
-                      <span>
-                        {event.registered_count || 0}
-                        {event.max_participants && ` / ${event.max_participants}`} participants
-                      </span>
+                      {event.registered_count || 0}
+                      {event.max_participants &&
+                        ` / ${event.max_participants}`}{" "}
+                      participants
                     </div>
                   </div>
 
-                  {/* Registration Button */}
-                  {(event.status === "upcoming" || event.status === "ongoing") && (
-                    <div onClick={(e) => e.stopPropagation()}>
-                      {getRegistrationButton(event)}
-                    </div>
-                  )}
+                  {/* View Detail */}
+                  <button
+                    onClick={() => router.push(`/events/${event.id}`)}
+                    className="mt-6 w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-700 text-white transition-all"
+                  >
+                    View Details
+                  </button>
                 </div>
               </div>
             ))}
