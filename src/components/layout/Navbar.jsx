@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -27,34 +27,9 @@ export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const navbarRef = useRef(null);
 
   if (pathname.startsWith("/admin")) return null;
   if (pathname === "/complete-profile") return null;
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
-        setOpen(false);
-        setProfileOpen(false);
-      }
-    };
-
-    if (open || profileOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open, profileOpen]);
-
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setOpen(false);
-    setProfileOpen(false);
-  }, [pathname]);
 
   const handleLogout = () => {
     logout();
@@ -84,10 +59,7 @@ export default function Navbar() {
     `${base} ${pathname === path ? active : inactive}`;
 
   return (
-    <header 
-      ref={navbarRef}
-      className="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg shadow-slate-200/50 z-50 border-b border-slate-100"
-    >
+    <header className="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg shadow-slate-200/50 z-50 border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -229,7 +201,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* ✅ Mobile Dropdown (FULL) */}
       <div
         className={`md:hidden transition-all duration-300 overflow-hidden ${
           open ? "max-h-[900px]" : "max-h-0"

@@ -92,6 +92,7 @@ export default function CompleteProfile() {
         profile_completed: true,
         last_donation_date: form.last_donation_date || null,
       });
+      // router.refresh();
 
       router.replace("/profile");
     } catch (err) {
